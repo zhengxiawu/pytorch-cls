@@ -212,7 +212,7 @@ class DaliIterator(object):
         dalipipeline.reset()
 
     def __iter__(self):
-        return DaliIterator.gen_wrapper(self.dalipipeline, self.num_classes)
+        return DaliIterator.gen_wrapper(self._dali_iterator)
 
     def __len__(self):
         return int(math.ceil(self._dali_iterator._size / self._dali_iterator.batch_size))

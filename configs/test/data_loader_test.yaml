@@ -6,4 +6,6 @@ TEST:
   DATASET: imagenet
   IM_SIZE: 256
   BATCH_SIZE: 200
+DATA_LOADER:
+  BACKEND: dali_cpu
 OUT_DIR: ./experiments/test/data_loader_test
