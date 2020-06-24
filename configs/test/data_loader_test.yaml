@@ -9,3 +9,4 @@ TEST:
 DATA_LOADER:
   BACKEND: dali_cpu
 OUT_DIR: ./experiments/test/data_loader_test
+LOG_DEST: 'file'
