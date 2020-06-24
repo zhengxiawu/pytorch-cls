@@ -100,6 +100,39 @@ _C.PREC_TIME.WARMUP_ITER = 3
 # Number of iterations to compute avg time
 _C.PREC_TIME.NUM_ITER = 200
 
+# ------------------------------------------------------------------------------------ #
+# Misc options
+# ------------------------------------------------------------------------------------ #
+
+# Number of GPUs to use (applies to both training and testing)
+_C.NUM_GPUS = 1
+
+# Output directory
+_C.OUT_DIR = "/tmp"
+
+# Config destination (in OUT_DIR)
+_C.CFG_DEST = "config.yaml"
+
+# Note that non-determinism may still be present due to non-deterministic
+# operator implementations in GPU operator libraries
+_C.RNG_SEED = 1
+
+# Log destination ('stdout' or 'file')
+_C.LOG_DEST = "file"
+
+# Log period in iters
+_C.LOG_PERIOD = 10
+
+# Distributed backend
+_C.DIST_BACKEND = "nccl"
+
+# Hostname and port for initializing multi-process groups
+_C.HOST = "localhost"
+_C.PORT = 10001
+
+# Models weights referred to by URL are downloaded to this local cache
+_C.DOWNLOAD_CACHE = "/tmp/pycls-download-cache"
+
 
 def dump_cfg():
     """Dumps the config to the output directory."""
