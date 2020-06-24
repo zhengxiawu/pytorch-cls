@@ -64,9 +64,9 @@ def ImageNet(data_path, split,  batch_size, shuffle, drop_last):
         use_dali = True if 'dali' in cfg.DATA_LOADER.BACKEND else False
         use_dali_cpu = True if cfg.DATA_LOADER.BACKEND == 'dali_cpu' else False
         dataset = ImageNet_(data_path,
-                            batch_size=batch_size,
+                            batch_size=cfg.TRAIN.BATCH_SIZE,
                             size=cfg.TRAIN.IM_SIZE,
-                            val_batch_size=batch_size,
+                            val_batch_size=cfg.TEST.BATCH_SIZE,
                             val_size=cfg.TEST.IM_SIZE,
                             min_crop_size=0.08,
                             workers=cfg.DATA_LOADER.NUM_WORKERS,
