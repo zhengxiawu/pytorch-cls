@@ -21,7 +21,7 @@ def main():
     # config.assert_and_infer_cfg()
     train_loader = loader.construct_train_loader()
     avg_time = benchmark.compute_time_loader(train_loader)
-    logger.info("The average time is: {}".format(avg_time))
+    print("The average time is: {}".format(avg_time))
 
 
 if __name__ == "__main__":
