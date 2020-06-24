@@ -34,13 +34,60 @@ _C.DATA_LOADER.NUM_WORKERS = 8
 # Load data to pinned host memory
 _C.DATA_LOADER.PIN_MEMORY = True
 
-# using which backend as image decoder and transformers: dali_cpu, dali_gpu, torch, and cv2
+# using which backend as image decoder and transformers: dali_cpu, dali_gpu, torch, and custom
 _C.DATA_LOADER.BACKEND = 'dali_cpu'
 
 # Number of data loader workers per process
 _C.DATA_LOADER.WORLD_SIZE = 1
 
+# transformers
 _C.DATA_LOADER.PCA_JITTER = False
+_C.DATA_LOADER.COLOR_JITTER = False
+
+# ------------------------------------------------------------------------------------ #
+# Training options
+# ------------------------------------------------------------------------------------ #
+_C.TRAIN = CfgNode()
+
+# Dataset and split
+_C.TRAIN.DATASET = ""
+_C.TRAIN.SPLIT = "train"
+
+# Total mini-batch size
+_C.TRAIN.BATCH_SIZE = 128
+
+# Image size
+_C.TRAIN.IM_SIZE = 224
+
+# Evaluate model on test data every eval period epochs
+_C.TRAIN.EVAL_PERIOD = 1
+
+# Save model checkpoint every checkpoint period epochs
+_C.TRAIN.CHECKPOINT_PERIOD = 1
+
+# Resume training from the latest checkpoint in the output directory
+_C.TRAIN.AUTO_RESUME = True
+
+# Weights to start training from
+_C.TRAIN.WEIGHTS = ""
+
+# ------------------------------------------------------------------------------------ #
+# Testing options
+# ------------------------------------------------------------------------------------ #
+_C.TEST = CfgNode()
+
+# Dataset and split
+_C.TEST.DATASET = ""
+_C.TEST.SPLIT = "val"
+
+# Total mini-batch size
+_C.TEST.BATCH_SIZE = 200
+
+# Image size
+_C.TEST.IM_SIZE = 256
+
+# Weights to use for testing
+_C.TEST.WEIGHTS = ""
 
 
 def dump_cfg():

@@ -19,20 +19,21 @@ import torch
 import torch.utils.data
 import torchvision.datasets as datasets
 import torchvision.transforms as torch_transforms
+from torch.utils.data.distributed import DistributedSampler
 
 import pytorch_cls.core.logging as logging
-import pytorch_cls.datasets.transforms as transforms
+import pytorch_cls.datasets.transforms as custom_transforms
 from pytorch_cls.core.config import cfg
 
 try:
     from nvidia import dali
-    from pytorch_cls.datasets.dali import HybridTrainPipe, HybridValPipe, DaliIteratorCPU, DaliIteratorGPU
+    from pytorch_cls.datasets.dali import HybridTrainPipe, HybridValPipe, DaliIterator
 except ImportError:
     print('Could not import DALI')
 
 logger = logging.get_logger(__name__)
 
-# Per-channel mean and SD values in BGR order
+# Per-channel mean and SD values in BGR order, only used in ImageNet custom backend
 _MEAN = [0.406, 0.456, 0.485]
 _SD = [0.225, 0.224, 0.229]
 
@@ -43,7 +44,49 @@ _EIG_VECS = np.array(
 )
 
 
-class ImageNet(torch.utils.data.Dataset):
+def ImageNet(data_path, split,  batch_size, shuffle, drop_last):
+    if cfg.DATA_LOADER.BACKEND == 'custom':
+        dataset = ImageNet_custom(data_path, split)
+        # Create a sampler for multi-process training
+        sampler = DistributedSampler(dataset) if cfg.NUM_GPUS > 1 else None
+        # Create a loader
+        loader = torch.utils.data.DataLoader(
+            dataset,
+            batch_size=batch_size,
+            shuffle=(False if sampler else shuffle),
+            sampler=sampler,
+            num_workers=cfg.DATA_LOADER.NUM_WORKERS,
+            pin_memory=cfg.DATA_LOADER.PIN_MEMORY,
+            drop_last=drop_last,
+        )
+        return loader
+    else:
+        use_dali = True if 'dali' in cfg.DATA_LOADER.BACKEND else False
+        use_dali_cpu = True if cfg.DATA_LOADER.BACKEND == 'dali_cpu' else False
+        dataset = ImageNet_(data_path,
+                            batch_size=batch_size,
+                            size=cfg.TRAIN.IM_SIZE,
+                            val_batch_size=batch_size,
+                            val_size=cfg.TEST.IM_SIZE,
+                            min_crop_size=0.08,
+                            workers=cfg.DATA_LOADER.NUM_WORKERS,
+                            world_size=1,
+                            cuda=True,
+                            use_dali=use_dali,
+                            dali_cpu=use_dali_cpu,
+                            fp16=False,
+                            mean=(0.485 * 255, 0.456 * 255, 0.406 * 255),
+                            std=(0.229 * 255, 0.224 * 255, 0.225 * 255),
+                            pin_memory=cfg.DATA_LOADER.PIN_MEMORY)
+        if split == 'train':
+            return dataset.train_loader
+        elif split == 'val':
+            return dataset.val_loader
+        else:
+            raise NotImplementedError
+
+
+class ImageNet_custom(torch.utils.data.Dataset):
     """ImageNet dataset."""
 
     def __init__(self, data_path, split):
@@ -84,22 +127,25 @@ class ImageNet(torch.utils.data.Dataset):
         train_size = cfg.TRAIN.IM_SIZE
         if self._split == "train":
             # Scale and aspect ratio then horizontal flip
-            im = transforms.random_sized_crop(
+            im = custom_transforms.random_sized_crop(
                 im=im, size=train_size, area_frac=0.08)
-            im = transforms.horizontal_flip(im=im, p=0.5, order="HWC")
+            im = custom_transforms.horizontal_flip(im=im, p=0.5, order="HWC")
         else:
             # Scale and center crop
-            im = transforms.scale(cfg.TEST.IM_SIZE, im)
-            im = transforms.center_crop(train_size, im)
+            im = custom_transforms.scale(cfg.TEST.IM_SIZE, im)
+            im = custom_transforms.center_crop(train_size, im)
         # HWC -> CHW
         im = im.transpose([2, 0, 1])
         # [0, 255] -> [0, 1]
         im = im / 255.0
         # PCA jitter
         if self._split == "train":
-            im = transforms.lighting(im, 0.1, _EIG_VALS, _EIG_VECS)
+            if cfg.DATA_LOADER.PCA_JITTER:
+                im = custom_transforms.lighting(im, 0.1, _EIG_VALS, _EIG_VECS)
+            if cfg.DATA_LOADER.COLOR_JITTER:
+                raise NotImplementedError
         # Color normalization
-        im = transforms.color_norm(im, _MEAN, _SD)
+        im = custom_transforms.color_norm(im, _MEAN, _SD)
         return im
 
     def __getitem__(self, index):
@@ -128,11 +174,11 @@ def clear_memory(verbose=False):
 
 
 """
-Copyed and modified from https://github.com/yaysummeriscoming/DALI_pytorch_demo/blob/master/dataloader.py
+ImageNet on DALI
 """
 
 
-class ImageNet_Dataset():
+class ImageNet_():
     """
     Pytorch Dataloader, with torchvision or Nvidia DALI CPU/GPU pipelines.
     This dataloader implements ImageNet style training preprocessing, namely:
@@ -173,8 +219,6 @@ class ImageNet_Dataset():
                  mean=(0.485 * 255, 0.456 * 255, 0.406 * 255),
                  std=(0.229 * 255, 0.224 * 255, 0.225 * 255),
                  pin_memory=True,
-                 pin_memory_dali=False,
-                 pca_jitter=False
                  ):
 
         self.batch_size = batch_size
@@ -190,8 +234,6 @@ class ImageNet_Dataset():
         self.mean = mean
         self.std = std
         self.pin_memory = pin_memory
-        self.pin_memory_dali = pin_memory_dali
-        self.pca_jitter = pca_jitter
 
         self.val_size = val_size
         if self.val_size is None:
@@ -212,7 +254,6 @@ class ImageNet_Dataset():
 
         # Standard torchvision dataloader
         else:
-            assert not pca_jitter, "Currently the pca_jitter only support dali_cpu model"
             logger.info('Using torchvision dataloader')
             self._build_torchvision_pipeline()
 
@@ -220,13 +261,15 @@ class ImageNet_Dataset():
         preproc_train = [torch_transforms.RandomResizedCrop(self.size, scale=(self.min_crop_size, 1.0)),
                          torch_transforms.RandomHorizontalFlip(),
                          torch_transforms.ToTensor(),
-                         torch_transforms.Normalize(mean=_MEAN, std=_SD),
+                         torch_transforms.Normalize(
+                             mean=self.mean, std=self.std),
                          ]
 
         preproc_val = [torch_transforms.Resize(self.val_size),
                        torch_transforms.CenterCrop(self.size),
                        torch_transforms.ToTensor(),
-                       torch_transforms.Normalize(mean=_MEAN, std=_SD),
+                       torch_transforms.Normalize(
+                           mean=self.mean, std=self.std),
                        ]
 
         train_dataset = datasets.ImageFolder(
@@ -256,11 +299,7 @@ class ImageNet_Dataset():
         current_device = torch.cuda.current_device()
         # assert self.world_size == 1, 'Distributed support not tested yet'
 
-        iterator_train = DaliIteratorGPU
-        if self.dali_cpu:
-            iterator_train = DaliIteratorCPU
-        else:
-            assert not self.pca_jitter, "Currently the pca_jitter only support dali_cpu model"
+        iterator_train = DaliIterator
 
         self.train_pipe = HybridTrainPipe(batch_size=self.batch_size, num_threads=self.workers, device_id=current_device,
                                           data_dir=self.traindir, crop=self.size, dali_cpu=self.dali_cpu,
@@ -269,11 +308,9 @@ class ImageNet_Dataset():
 
         self.train_pipe.build()
         self.train_loader = iterator_train(pipelines=self.train_pipe, size=self.get_nb_train(
-        ) / self.world_size, fp16=self.fp16, mean=self.mean, std=self.std, pin_memory=self.pin_memory_dali, pca_jitter=self.pca_jitter)
+        ) / self.world_size)
 
-        iterator_val = DaliIteratorGPU
-        if val_on_cpu:
-            iterator_val = DaliIteratorCPU
+        iterator_val = DaliIterator
 
         self.val_pipe = HybridValPipe(batch_size=self.val_batch_size, num_threads=self.workers, device_id=current_device,
                                       data_dir=self.valdir, crop=self.size, size=self.val_size, dali_cpu=val_on_cpu,
@@ -282,7 +319,7 @@ class ImageNet_Dataset():
 
         self.val_pipe.build()
         self.val_loader = iterator_val(pipelines=self.val_pipe, size=self.get_nb_val(
-        ) / self.world_size, fp16=self.fp16, mean=self.mean, std=self.std, pin_memory=self.pin_memory_dali)
+        ) / self.world_size)
 
     def _get_torchvision_loader(self, loader):
         return TorchvisionIterator(loader=loader,
