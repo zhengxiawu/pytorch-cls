@@ -7,7 +7,6 @@ import math
 import threading
 from torch.multiprocessing import Event
 from torch._six import queue
-from pycls.datasets.transforms import torch_lighting
 
 try:
     from nvidia.dali.plugin.pytorch import DALIClassificationIterator
