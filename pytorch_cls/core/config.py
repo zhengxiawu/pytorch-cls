@@ -89,6 +89,17 @@ _C.TEST.IM_SIZE = 256
 # Weights to use for testing
 _C.TEST.WEIGHTS = ""
 
+# ------------------------------------------------------------------------------------ #
+# Precise timing options
+# ------------------------------------------------------------------------------------ #
+_C.PREC_TIME = CfgNode()
+
+# Number of iterations to warm up the caches
+_C.PREC_TIME.WARMUP_ITER = 3
+
+# Number of iterations to compute avg time
+_C.PREC_TIME.NUM_ITER = 200
+
 
 def dump_cfg():
     """Dumps the config to the output directory."""
