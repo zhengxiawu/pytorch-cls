@@ -24,9 +24,9 @@ _DATASETS = {"cifar10": Cifar10, "imagenet": ImageNet}
 # Default data directory (/path/pycls/pycls/datasets/data)
 # _DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 if cfg.DATA_LOADER.MEMORY_DATA:
-    _DATA_DIR = "/gdata"
-else:
     _DATA_DIR = "/userhome/temp_data"
+else:
+    _DATA_DIR = "/gdata"
 # Relative data paths to default data directory
 _PATHS = {"cifar10": "cifar10", "imagenet": "ImageNet2012"}
 
