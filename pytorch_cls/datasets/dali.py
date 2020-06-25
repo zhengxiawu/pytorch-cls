@@ -216,3 +216,6 @@ class DaliIterator(object):
 
     def __len__(self):
         return int(math.ceil(self._dali_iterator._size / self._dali_iterator.batch_size))
+
+    def reset(self):
+        self._dali_iterator.reset()

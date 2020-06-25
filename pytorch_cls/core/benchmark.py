@@ -22,8 +22,10 @@ def compute_time_eval(model):
     # Use eval mode
     model.eval()
     # Generate a dummy mini-batch and copy data to GPU
-    im_size, batch_size = cfg.TRAIN.IM_SIZE, int(cfg.TEST.BATCH_SIZE / cfg.NUM_GPUS)
-    inputs = torch.zeros(batch_size, 3, im_size, im_size).cuda(non_blocking=False)
+    im_size, batch_size = cfg.TRAIN.IM_SIZE, int(
+        cfg.TEST.BATCH_SIZE / cfg.NUM_GPUS)
+    inputs = torch.zeros(batch_size, 3, im_size,
+                         im_size).cuda(non_blocking=False)
     # Compute precise forward pass time
     timer = Timer()
     total_iter = cfg.PREC_TIME.NUM_ITER + cfg.PREC_TIME.WARMUP_ITER
@@ -44,12 +46,16 @@ def compute_time_train(model, loss_fun):
     # Use train mode
     model.train()
     # Generate a dummy mini-batch and copy data to GPU
-    im_size, batch_size = cfg.TRAIN.IM_SIZE, int(cfg.TRAIN.BATCH_SIZE / cfg.NUM_GPUS)
-    inputs = torch.rand(batch_size, 3, im_size, im_size).cuda(non_blocking=False)
-    labels = torch.zeros(batch_size, dtype=torch.int64).cuda(non_blocking=False)
+    im_size, batch_size = cfg.TRAIN.IM_SIZE, int(
+        cfg.TRAIN.BATCH_SIZE / cfg.NUM_GPUS)
+    inputs = torch.rand(batch_size, 3, im_size,
+                        im_size).cuda(non_blocking=False)
+    labels = torch.zeros(batch_size, dtype=torch.int64).cuda(
+        non_blocking=False)
     # Cache BatchNorm2D running stats
     bns = [m for m in model.modules() if isinstance(m, torch.nn.BatchNorm2d)]
-    bn_stats = [[bn.running_mean.clone(), bn.running_var.clone()] for bn in bns]
+    bn_stats = [[bn.running_mean.clone(), bn.running_var.clone()]
+                for bn in bns]
     # Compute precise forward backward pass time
     fw_timer, bw_timer = Timer(), Timer()
     total_iter = cfg.PREC_TIME.NUM_ITER + cfg.PREC_TIME.WARMUP_ITER
@@ -88,6 +94,23 @@ def compute_time_loader(data_loader):
         next(data_loader_iterator)
         timer.toc()
     return timer.average_time
+
+
+def compute_full_loader(data_loader, epoch=1):
+    """Computes full loader time."""
+    timer = Timer()
+    epoch_avg = []
+    timer.tic()
+    for j in range(epoch):
+        for i, (inputs, labels) in enumerate(data_loader):
+            inputs = inputs.cuda()
+            labels = labels.cuda()
+            timer.toc()
+            timer.tic()
+        epoch_avg.append(timer.average_time)
+        data_loader.reset()
+        timer.reset()
+    return epoch_avg
 
 
 def compute_time_full(model, loss_fun, train_loader, test_loader):

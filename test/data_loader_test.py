@@ -19,10 +19,11 @@ logger = logging.get_logger(__name__)
 def main():
     config.load_cfg_fom_args("Compute model and loader timings.")
     # config.assert_and_infer_cfg()
-    train_loader = loader.construct_train_loader()
-    avg_time = benchmark.compute_time_loader(train_loader)
-    print("The average time is: {}".format(avg_time))
-
+    test_loader = loader.construct_test_loader()
+    logging.setup_logging()
+    avg_time = benchmark.compute_full_loader(test_loader, epoch=2)
+    for i, _time in enumerate(avg_time):
+        logger.info("The {}'s epoch average time is: {}".format(i, avg_time))
 
 if __name__ == "__main__":
     main()
