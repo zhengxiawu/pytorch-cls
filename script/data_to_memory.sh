@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 if [ "$1" == "imagenet" ]; then
 mount -t tmpfs -o size=160G tmpfs /userhome/temp_data
-mkdir /userhome/temp_data/ImageNet
-mkdir /userhome/temp_data/ImageNet/train
-tar xvf /gdata/ImageNet2012/ILSVRC2012_img_train.tar -C /userhome/temp_data/ImageNet/train
-cp /userhome/script/unzip_image_net.sh /userhome/temp_data/ImageNet/train/
-cd /userhome/temp_data/ImageNet/train/
+mkdir /userhome/temp_data/ImageNet2012
+mkdir /userhome/temp_data/ImageNet2012/train
+tar xvf /gdata/ImageNet2012/ILSVRC2012_img_train.tar -C /userhome/temp_data/ImageNet2012/train
+cp /userhome/project/pytorch-cls/script/unzip_image_net.sh /userhome/temp_data/ImageNet2012/train/
+cd /userhome/temp_data/ImageNet2012/train/
 ./unzip_image_net.sh
-cp -r /userhome/ILSVRC2012_img_val/ /userhome/temp_data/ImageNet/val
+cp -r /userhome/ILSVRC2012_img_val/ /userhome/temp_data/ImageNet2012/val
 elif [ "$1" == 'cifar10' ];
 then
 mount -t tmpfs -o size=1G tmpfs /userhome/temp_data

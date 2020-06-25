@@ -40,6 +40,9 @@ _C.DATA_LOADER.BACKEND = 'dali_cpu'
 # Number of data loader workers per process
 _C.DATA_LOADER.WORLD_SIZE = 1
 
+# Copy the whole dataset into memory
+_C.DATA_LOADER.MEMORY_DATA = False
+
 # transformers
 _C.DATA_LOADER.PCA_JITTER = False
 _C.DATA_LOADER.COLOR_JITTER = False
