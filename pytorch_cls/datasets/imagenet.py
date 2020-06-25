@@ -45,6 +45,7 @@ _EIG_VECS = np.array(
 
 
 def ImageNet(data_path, split,  batch_size, shuffle, drop_last):
+    assert cfg.DATA_LOADER.BACKEND in ['custom', 'dali_cpu', 'dali_gpu', 'torch']
     if cfg.DATA_LOADER.BACKEND == 'custom':
         dataset = ImageNet_custom(data_path, split)
         # Create a sampler for multi-process training
