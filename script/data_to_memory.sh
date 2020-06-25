@@ -11,11 +11,11 @@ cp -r /userhome/ILSVRC2012_img_val/ /userhome/temp_data/ImageNet/val
 elif [ "$1" == 'cifar10' ];
 then
 mount -t tmpfs -o size=1G tmpfs /userhome/temp_data
-cp -r /userhome/data/cifar10 /userhome/temp_data/
+cp -r /gdata/cifar10/ userhome/temp_data/
 elif [ "$1" == 'cifar100' ];
 then
 mount -t tmpfs -o size=1G tmpfs /userhome/temp_data
-cp -r /userhome/data/cifar100 /userhome/temp_data/
+cp -r /gdata/cifar100 /userhome/temp_data/
 elif [ "$1" == 'fashionmnist' ];
 then
 mount -t tmpfs -o size=1G tmpfs /userhome/temp_data
