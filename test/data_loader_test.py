@@ -25,5 +25,6 @@ def main():
     for i, _time in enumerate(avg_time):
         logger.info("The {}'s epoch average time is: {}".format(i, avg_time))
 
+
 if __name__ == "__main__":
     main()
