@@ -21,7 +21,7 @@ def main():
     # config.assert_and_infer_cfg()
     test_loader = loader.construct_test_loader()
     logging.setup_logging()
-    avg_time = benchmark.compute_full_loader(test_loader, epoch=2)
+    avg_time = benchmark.compute_full_loader(test_loader, epoch=3)
     for i, _time in enumerate(avg_time):
         logger.info("The {}'s epoch average time is: {}".format(i, avg_time))
 
