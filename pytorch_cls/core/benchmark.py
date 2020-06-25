@@ -110,7 +110,6 @@ def compute_full_loader(data_loader, epoch=1):
             logger.info("Epoch {}/{}, Iter {}/{}: Dataloader time is: {}".format(j + 1, epoch, i+1, data_loader_len, timer.diff))
             timer.tic()
         epoch_avg.append(timer.average_time)
-        data_loader.reset()
         timer.reset()
     return epoch_avg
 
