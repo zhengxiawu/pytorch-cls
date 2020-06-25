@@ -36,8 +36,6 @@ def _construct_loader(dataset_name, split, batch_size, shuffle, drop_last):
     # Retrieve the data path for the dataset
     data_path = os.path.join(_DATA_DIR, _PATHS[dataset_name])
     print("reading data from {}".format(data_path))
-    import pdb
-    pdb.set_trace()
     # Construct the dataset
     loader = _DATASETS[dataset_name](
         data_path, split,  batch_size, shuffle, drop_last)
