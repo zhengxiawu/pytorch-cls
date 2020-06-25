@@ -112,6 +112,7 @@ def compute_full_loader(data_loader, epoch=1):
         epoch_avg.append(timer.average_time)
         data_loader.reset()
         timer.reset()
+        timer.tic()
     return epoch_avg
 
 
