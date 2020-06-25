@@ -19,8 +19,6 @@ logger = logging.get_logger(__name__)
 
 
 def test_full_time():
-    """Sets up environment for training or testing."""
-    os.makedirs(cfg.OUT_DIR, exist_ok=True)
     # Save the config
     config.dump_cfg()
     # Setup logging
@@ -38,6 +36,8 @@ def test_full_time():
 def main():
     config.load_cfg_fom_args("Compute model and loader timings.")
     logging.setup_logging()
+    """Sets up environment for training or testing."""
+    os.makedirs(cfg.OUT_DIR, exist_ok=True)
     dist.multi_proc_run(num_proc=1, fun=test_full_time)
 
 
