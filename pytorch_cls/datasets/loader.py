@@ -37,6 +37,7 @@ def _construct_loader(dataset_name, split, batch_size, shuffle, drop_last):
     assert dataset_name in _DATASETS and dataset_name in _PATHS, err_str
     # Retrieve the data path for the dataset
     data_path = os.path.join(_DATA_DIR, _PATHS[dataset_name])
+    print("reading data from {}".format(data_path))
     # Construct the dataset
     loader = _DATASETS[dataset_name](
         data_path, split,  batch_size, shuffle, drop_last)
