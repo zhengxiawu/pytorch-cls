@@ -20,8 +20,6 @@ logger = logging.get_logger(__name__)
 
 def test_full_time():
     """Sets up environment for training or testing."""
-    logger.info(dist.is_master_proc())
-    # Ensure that the output dir exists
     os.makedirs(cfg.OUT_DIR, exist_ok=True)
     # Save the config
     config.dump_cfg()
