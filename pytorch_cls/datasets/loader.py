@@ -39,7 +39,7 @@ def _construct_loader(dataset_name, split, batch_size, shuffle, drop_last):
     loader = _DATASETS[dataset_name](
         data_path, split,  batch_size, shuffle, drop_last)
     if not hasattr(loader, 'reset'):
-        def reset(self):
+        def reset():
             return
         setattr(loader, 'reset', reset)
     return loader
