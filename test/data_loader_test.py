@@ -6,14 +6,14 @@
 # LICENSE file in the root directory of this source tree.
 
 """Compute model and loader timings."""
-
+import os
 import pytorch_cls.core.benchmark as benchmark
 import pytorch_cls.core.config as config
 import pytorch_cls.core.logging as logging
 import pytorch_cls.datasets.loader as loader
 import pytorch_cls.core.distributed as dist
 from pytorch_cls.core.config import cfg
-import os
+
 
 logger = logging.get_logger(__name__)
 
