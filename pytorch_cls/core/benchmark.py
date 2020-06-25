@@ -100,9 +100,9 @@ def compute_full_loader(data_loader, epoch=1):
     """Computes full loader time."""
     timer = Timer()
     epoch_avg = []
-    timer.tic()
     data_loader_len = len(data_loader)
     for j in range(epoch):
+        timer.tic()
         for i, (inputs, labels) in enumerate(data_loader):
             inputs = inputs.cuda()
             labels = labels.cuda()

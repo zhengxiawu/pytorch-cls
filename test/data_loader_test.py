@@ -30,7 +30,7 @@ def test_full_time():
     test_loader = loader.construct_test_loader()
     avg_time = benchmark.compute_full_loader(test_loader, epoch=3)
     for i, _time in enumerate(avg_time):
-        logger.info("The {}'s epoch average time is: {}".format(i, avg_time))
+        logger.info("The {}'s epoch average time is: {}".format(i, _time))
 
 
 def main():
