@@ -11,19 +11,36 @@ import pytorch_cls.core.benchmark as benchmark
 import pytorch_cls.core.config as config
 import pytorch_cls.core.logging as logging
 import pytorch_cls.datasets.loader as loader
+import pytorch_cls.core.distributed as dist
 from pytorch_cls.core.config import cfg
+import os
 
 logger = logging.get_logger(__name__)
 
 
-def main():
-    config.load_cfg_fom_args("Compute model and loader timings.")
+def test_full_time():
+    """Sets up environment for training or testing."""
+    if dist.is_master_proc():
+        # Ensure that the output dir exists
+        os.makedirs(cfg.OUT_DIR, exist_ok=True)
+        # Save the config
+        config.dump_cfg()
+    # Setup logging
+    logging.setup_logging()
+    # Log the config as both human readable and as a json
+    logger.info("Config:\n{}".format(cfg))
+    logger.info(logging.dump_log_data(cfg, "cfg"))
     # config.assert_and_infer_cfg()
     test_loader = loader.construct_test_loader()
-    logging.setup_logging()
     avg_time = benchmark.compute_full_loader(test_loader, epoch=3)
     for i, _time in enumerate(avg_time):
         logger.info("The {}'s epoch average time is: {}".format(i, avg_time))
+
+
+def main():
+    config.load_cfg_fom_args("Compute model and loader timings.")
+    logging.setup_logging()
+    dist.multi_proc_run(num_proc=1, fun=test_full_time)
 
 
 if __name__ == "__main__":
