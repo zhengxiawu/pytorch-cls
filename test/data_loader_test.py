@@ -37,6 +37,7 @@ def main():
     config.load_cfg_fom_args("Compute model and loader timings.")
     logging.setup_logging()
     """Sets up environment for training or testing."""
+    import pdb; pdb.set_trace()
     os.makedirs(cfg.OUT_DIR, exist_ok=True)
     dist.multi_proc_run(num_proc=1, fun=test_full_time)
 
