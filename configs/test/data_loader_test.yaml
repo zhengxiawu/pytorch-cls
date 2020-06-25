@@ -9,5 +9,5 @@ TEST:
 DATA_LOADER:
   BACKEND: dali_cpu
   NUM_WORKERS: 4
-OUT_DIR: ./experiments/test/data_loader_test
+OUT_DIR: /userhome/project/pytorch-cls/experiments/test/data_loader_test
 LOG_DEST: 'file'
