@@ -21,24 +21,23 @@ from torch.utils.data.sampler import RandomSampler
 _DATASETS = {"cifar10": Cifar10, "imagenet": ImageNet}
 
 
-# Default data directory (/path/pycls/pycls/datasets/data)
-# _DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
-if cfg.DATA_LOADER.MEMORY_DATA:
-    _DATA_DIR = "/userhome/temp_data"
-else:
-    _DATA_DIR = "/gdata"
-# Relative data paths to default data directory
-_PATHS = {"cifar10": "cifar10", "imagenet": "ImageNet2012"}
-
-
 def _construct_loader(dataset_name, split, batch_size, shuffle, drop_last):
+    # Default data directory (/path/pycls/pycls/datasets/data)
+    # _DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+    if cfg.DATA_LOADER.MEMORY_DATA:
+        _DATA_DIR = "/userhome/temp_data"
+    else:
+        _DATA_DIR = "/gdata"
+    # Relative data paths to default data directory
+    _PATHS = {"cifar10": "cifar10", "imagenet": "ImageNet2012"}
     """Constructs the data loader for the given dataset."""
     err_str = "Dataset '{}' not supported".format(dataset_name)
     assert dataset_name in _DATASETS and dataset_name in _PATHS, err_str
     # Retrieve the data path for the dataset
     data_path = os.path.join(_DATA_DIR, _PATHS[dataset_name])
     print("reading data from {}".format(data_path))
-    import pdb; pdb.set_trace()
+    import pdb
+    pdb.set_trace()
     # Construct the dataset
     loader = _DATASETS[dataset_name](
         data_path, split,  batch_size, shuffle, drop_last)
