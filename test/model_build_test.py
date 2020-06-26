@@ -8,11 +8,12 @@
 """Test build a classification model."""
 
 import torch
-import pycls.core.config as config
-from pytorch_cls.core.config import cfg
-from pytorch_cls.core.builders import build_model
-from pytorch_cls.core.net import complexity
 from thop import profile
+
+import pytorch_cls.core.config as config
+from pytorch_cls.core.builders import build_model
+from pytorch_cls.core.config import cfg
+from pytorch_cls.core.net import complexity
 
 
 def main():
