@@ -36,7 +36,7 @@ NUMA node1 CPU(s):     20-39,60-79
 
 ## Results
 
-We run Imagenet 2012 val dataloader 2 epochs with 200 batch size and report the stastics of each batch under different hyperparameters (C_W_B_R), where C denotes CPU number, W denotes number of wokers, B denotes backends and R denote if we storage the data into RAM:
+We run Imagenet 2012 val dataloader 2 epochs with 200 batch size and report the stastics of each batch under different hyperparameters (C_W_B_R), where C,W denote the number of CPU and data loader wokers, respectively, B denotes backends (we have four different backends: a). custom: using cv2 as image decoder. b). torch: using torch as data loader c). using dali but setting the decoder device as cpu. d). using dali but setting the decoder device as gpu. ) and R denote if we storage the data into RAM. Apparently, dali is more effective than others.
 
 | Hyper (C_W_B_R)    |Epoch1 (mean)|Epoch1 (std)|Epoch1 (min)|Epoch1 (max)|Epoch2 (mean)|Epoch2 (std)|Epoch2 (min)|Epoch2 (max)|
 | ---------------    |:---------:  |:---------: |:-------:   |:--------:  |:--------:   |:--------:  |:---:       |:---:       |
