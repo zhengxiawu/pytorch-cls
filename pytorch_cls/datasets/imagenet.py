@@ -71,7 +71,7 @@ def ImageNet(data_path, split,  batch_size, shuffle, drop_last):
                             val_size=cfg.TEST.IM_SIZE,
                             min_crop_size=0.08,
                             workers=cfg.DATA_LOADER.NUM_WORKERS,
-                            world_size=cfg.WORLD_SIZE,
+                            world_size=cfg.DATA_LOADER.WORLD_SIZE,
                             cuda=True,
                             use_dali=use_dali,
                             dali_cpu=use_dali_cpu,
