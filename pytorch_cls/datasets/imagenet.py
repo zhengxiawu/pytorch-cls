@@ -71,7 +71,7 @@ def ImageNet(data_path, split,  batch_size, shuffle, drop_last):
                             val_size=cfg.TEST.IM_SIZE,
                             min_crop_size=0.08,
                             workers=cfg.DATA_LOADER.NUM_WORKERS,
-                            world_size=1,
+                            world_size=cfg.WORLD_SIZE,
                             cuda=True,
                             use_dali=use_dali,
                             dali_cpu=use_dali_cpu,
@@ -220,6 +220,7 @@ class ImageNet_():
                  mean=(0.485 * 255, 0.456 * 255, 0.406 * 255),
                  std=(0.229 * 255, 0.224 * 255, 0.225 * 255),
                  pin_memory=True,
+                 color_jitter=False
                  ):
 
         self.batch_size = batch_size
@@ -235,6 +236,12 @@ class ImageNet_():
         self.mean = mean
         self.std = std
         self.pin_memory = pin_memory
+        self.color_jitter = color_jitter
+
+        # color jitter not implenment yet since it may have a worse performnace in imagenet
+        # according https://github.com/pytorch/examples/issues/291 and https://github.com/pytorch/examples/blob/master/imagenet/main.py
+        if self.color_jitter:
+            raise NotImplementedError
 
         self.val_size = val_size
         if self.val_size is None:
@@ -259,6 +266,8 @@ class ImageNet_():
             self._build_torchvision_pipeline()
 
     def _build_torchvision_pipeline(self):
+        self.mean = [0.485, 0.456, 0.406]
+        self.std = [0.229, 0.224, 0.225]
         preproc_train = [torch_transforms.RandomResizedCrop(self.size, scale=(self.min_crop_size, 1.0)),
                          torch_transforms.RandomHorizontalFlip(),
                          torch_transforms.ToTensor(),

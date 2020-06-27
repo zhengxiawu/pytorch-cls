@@ -45,7 +45,7 @@ class HybridTrainPipe(Pipeline):
 
     def __init__(self, batch_size, num_threads, device_id, data_dir, crop,
                  mean, std, local_rank=0, world_size=1, dali_cpu=False, shuffle=True, fp16=False,
-                 min_crop_size=0.08):
+                 min_crop_size=0.08, color_jitter=False):
 
         # As we're recreating the Pipeline at every epoch, the seed must be -1 (random seed)
         super(HybridTrainPipe, self).__init__(
