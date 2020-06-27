@@ -159,14 +159,8 @@ def train_model():
         logger.info("Loaded initial weights from: {}".format(
             cfg.TRAIN.WEIGHTS))
     # Create data loaders and meters
-    if cfg.TEST.DATASET == 'imagenet_dataset' or cfg.TRAIN.DATASET == 'imagenet_dataset':
-        dataset = loader.construct_train_loader()
-        train_loader = dataset.train_loader
-        test_loader = dataset.val_loader
-    else:
-        dataset = None
-        train_loader = loader.construct_train_loader()
-        test_loader = loader.construct_test_loader()
+    train_loader = loader.construct_train_loader()
+    test_loader = loader.construct_test_loader()
     train_meter = meters.TrainMeter(len(train_loader))
     test_meter = meters.TestMeter(len(test_loader))
     # Compute model and loader timings
@@ -191,15 +185,10 @@ def train_model():
         if next_epoch % cfg.TRAIN.EVAL_PERIOD == 0 or next_epoch == cfg.OPTIM.MAX_EPOCH:
             logger.info("Start testing")
             test_epoch(test_loader, model, test_meter, cur_epoch)
-        if dataset is not None:
-            logger.info("Reset the dataset")
-            train_loader._dali_iterator.reset()
-            test_loader._dali_iterator.reset()
-            # clear memory
-            if torch.cuda.is_available():
-                torch.cuda.synchronize()
-                torch.cuda.empty_cache()  # https://forums.fast.ai/t/clearing-gpu-memory-pytorch/14637
-            gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
+            torch.cuda.empty_cache()  # https://forums.fast.ai/t/clearing-gpu-memory-pytorch/14637
+        gc.collect()
 
 
 def test_model():
