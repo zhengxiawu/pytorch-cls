@@ -23,5 +23,9 @@ TEST:
   DATASET: imagenet
   IM_SIZE: 522
   BATCH_SIZE: 48
+DATA_LOADER:
+  NUM_WORKERS: 12
+  WORLD_SIZE: 8
+  BACKEND: 'dali_cpu'
 NUM_GPUS: 8
-OUT_DIR: .
+OUT_DIR: './experiments/train/EN-B5_dds_8gpu
