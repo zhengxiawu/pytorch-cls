@@ -28,4 +28,4 @@ DATA_LOADER:
   WORLD_SIZE: 8
   BACKEND: 'dali_cpu'
 NUM_GPUS: 8
-OUT_DIR: './experiments/train/EN-B2_dds_8gpu
+OUT_DIR: './experiments/train/EN-B2_dds_8gpu'
