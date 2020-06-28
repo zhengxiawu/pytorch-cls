@@ -327,6 +327,9 @@ _C.TRAIN.AUTO_RESUME = True
 # Weights to start training from
 _C.TRAIN.WEIGHTS = ""
 
+# using FP16
+_C.TRAIN.AMP = False
+
 # ------------------------------------------------------------------------------------ #
 # Testing options
 # ------------------------------------------------------------------------------------ #
@@ -344,6 +347,9 @@ _C.TEST.IM_SIZE = 256
 
 # Weights to use for testing
 _C.TEST.WEIGHTS = ""
+
+# using FP16
+_C.TEST.AMP = False
 
 # ------------------------------------------------------------------------------------ #
 # Precise timing options

@@ -45,7 +45,8 @@ _EIG_VECS = np.array(
 
 
 def ImageNet(data_path, split,  batch_size, shuffle, drop_last):
-    assert cfg.DATA_LOADER.BACKEND in ['custom', 'dali_cpu', 'dali_gpu', 'torch']
+    assert cfg.DATA_LOADER.BACKEND in [
+        'custom', 'dali_cpu', 'dali_gpu', 'torch']
     if cfg.DATA_LOADER.BACKEND == 'custom':
         dataset = ImageNet_custom(data_path, split)
         # Create a sampler for multi-process training
@@ -64,6 +65,8 @@ def ImageNet(data_path, split,  batch_size, shuffle, drop_last):
     else:
         use_dali = True if 'dali' in cfg.DATA_LOADER.BACKEND else False
         use_dali_cpu = True if cfg.DATA_LOADER.BACKEND == 'dali_cpu' else False
+        # In torch cuda amp, we do not manually change data to FP16
+        # use_fp16 = (split == 'train' & cfg.TRAIN.FP16) | (split == 'val' & cfg.TEST.FP16)
         dataset = ImageNet_(data_path,
                             batch_size=batch_size,
                             size=cfg.TRAIN.IM_SIZE,

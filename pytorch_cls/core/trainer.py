@@ -80,18 +80,33 @@ def train_epoch(train_loader, model, loss_fun, optimizer, train_meter, cur_epoch
     # Enable training mode
     model.train()
     train_meter.iter_tic()
+    # scale the grad in amp
+    scaler = torch.cuda.amp.GradScaler() if cfg.TRAIN.AMP else None
     for cur_iter, (inputs, labels) in enumerate(train_loader):
         # Transfer the data to the current GPU device
         inputs, labels = inputs.cuda(), labels.cuda(non_blocking=True)
-        # Perform the forward pass
-        preds = model(inputs)
-        # Compute the loss
-        loss = loss_fun(preds, labels)
-        # Perform the backward pass
-        optimizer.zero_grad()
-        loss.backward()
-        # Update the parameters
-        optimizer.step()
+        # using AMP
+        if cfg.TRAIN.AMP:
+            with torch.cuda.amp.autocast():
+                # Perform the forward pass in AMP
+                preds = model(inputs)
+                # Compute the loss in AMP
+                loss = loss_fun(preds, labels)
+                # Perform the backward pass in AMP
+                optimizer.zero_grad()
+                scaler.scale(loss).backward()
+                scaler.step(optimizer)
+                # Updates the scale for next iteration.
+                scaler.update()
+        else:
+            preds = model(inputs)
+            # Compute the loss
+            loss = loss_fun(preds, labels)
+            # Perform the backward pass
+            optimizer.zero_grad()
+            loss.backward()
+            # Update the parameters
+            optimizer.step()
         # Compute the errors
         top1_err, top5_err = meters.topk_errors(preds, labels, [1, 5])
         # Combine the stats across the GPUs (no reduction if 1 GPU used)
@@ -119,8 +134,14 @@ def test_epoch(test_loader, model, test_meter, cur_epoch):
     for cur_iter, (inputs, labels) in enumerate(test_loader):
         # Transfer the data to the current GPU device
         inputs, labels = inputs.cuda(), labels.cuda(non_blocking=True)
-        # Compute the predictions
-        preds = model(inputs)
+        # using AMP
+        if cfg.TEST.AMP:
+            with torch.cuda.amp.autocast():
+                # Compute the predictions
+                preds = model(inputs)
+        else:
+            # Compute the predictions
+            preds = model(inputs)
         # Compute the errors
         top1_err, top5_err = meters.topk_errors(preds, labels, [1, 5])
         # Combine the errors across the GPUs  (no reduction if 1 GPU used)
