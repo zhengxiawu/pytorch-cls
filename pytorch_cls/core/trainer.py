@@ -80,13 +80,14 @@ def train_epoch(train_loader, model, loss_fun, optimizer, train_meter, cur_epoch
     # Enable training mode
     model.train()
     train_meter.iter_tic()
-    # scale the grad in amp
-    scaler = torch.cuda.amp.GradScaler() if cfg.TRAIN.AMP else None
+    # scale the grad in amp, amp only support the newest version
+    scaler = torch.cuda.amp.GradScaler() if cfg.TRAIN.AMP & hasattr(
+        torch.cuda.amp, 'autocast') else None
     for cur_iter, (inputs, labels) in enumerate(train_loader):
         # Transfer the data to the current GPU device
         inputs, labels = inputs.cuda(), labels.cuda(non_blocking=True)
         # using AMP
-        if cfg.TRAIN.AMP:
+        if scaler is not None:
             with torch.cuda.amp.autocast():
                 # Perform the forward pass in AMP
                 preds = model(inputs)
@@ -135,7 +136,7 @@ def test_epoch(test_loader, model, test_meter, cur_epoch):
         # Transfer the data to the current GPU device
         inputs, labels = inputs.cuda(), labels.cuda(non_blocking=True)
         # using AMP
-        if cfg.TEST.AMP:
+        if cfg.TEST.AMP & hasattr(torch.cuda.amp, 'autocast'):
             with torch.cuda.amp.autocast():
                 # Compute the predictions
                 preds = model(inputs)
