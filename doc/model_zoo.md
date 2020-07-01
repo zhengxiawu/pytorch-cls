@@ -38,6 +38,8 @@ We provide imagenet dataloader with different backends
 
 - Torch: Using torch as dataloader, all the transformer are from torchvision.
 
+All the baselines are trained with DALI_CPU backend
+
 ## Baselines
 
 ### ResNet
@@ -46,11 +48,11 @@ We provide imagenet dataloader with different backends
 | -------  |:----:  |:-------:|:-----:|:--------:|:-------:|:-------: |:---:|:---:   |
 | ResNet-50|4.1     |22.6     |11.1   |256       |53       |22.5      |23.46| -      |
 |ResNet-101|7.8     |44.6     |16.2   |256       |90       |35.4      |21.60| -      |
-|ResNet-152|4.1     |22.6     |11.1   |256       |53       |-         |-    | -      |
+|ResNet-152|4.1     |22.6     |11.1   |256       |53       |38.75     |21.08| -      |
 
 ### Efficient
 
 | Model         |FLOPS(B)|params(M)|acts(M)|batch size|infer(ms)|train(hrs)|Top1 |download|
 | -------       |:----:  |:-------:|:-----:|:--------:|:-------:|:-------: |:---:|:---:   |
 |EfficientNet-B0|0.4     |5.3      |6.7    |256       |34       |13.64     |25.37| -      |
-|EfficientNet-B1|0.7     |7.8      |10.9   |256       |52       |-         |-    | -      |
+|EfficientNet-B1|0.7     |7.8      |10.9   |256       |52       |25.65     |24.25| -      |
