@@ -238,6 +238,13 @@ _C.BN.CUSTOM_WEIGHT_DECAY = 0.0
 # Optimizer options
 # ------------------------------------------------------------------------------------ #
 _C.OPTIM = CfgNode()
+# optimizaer name from {'sgd', 'rmsprop'}
+_C.OPTIM.NAME = 'sgd'
+
+# hyper parameters only for rmoprop
+# the alpha here = rho in tensorflow rmsprop
+_C.OPTIM.ALPHA = 0.9
+_C.OPTIM.EPSILON = 0.1
 
 # Base learning rate
 _C.OPTIM.BASE_LR = 0.1
