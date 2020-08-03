@@ -38,7 +38,7 @@ def _construct_loader(dataset_name, split, batch_size, shuffle, drop_last):
     print("reading data from {}".format(data_path))
     # Construct the dataset
     loader = _DATASETS[dataset_name](
-        data_path, split,  batch_size, shuffle, drop_last)
+        data_path, split, batch_size, shuffle, drop_last)
     if not hasattr(loader, 'sampler'):
         setattr(loader, 'sampler', None)
     return loader

@@ -11,11 +11,15 @@ import os
 import pickle
 
 import numpy as np
+import torch.utils.data
+import torchvision.datasets as dset
+import torchvision.transforms as torch_transforms
+from torch.utils.data.distributed import DistributedSampler
+
 import pytorch_cls.core.logging as logging
 import pytorch_cls.datasets.transforms as transforms
-import torch.utils.data
 from pytorch_cls.core.config import cfg
-
+from pytorch_cls.datasets.transforms import Cutout
 
 logger = logging.get_logger(__name__)
 
@@ -24,13 +28,61 @@ _MEAN = [125.3, 123.0, 113.9]
 _SD = [63.0, 62.1, 66.7]
 
 
-class Cifar10(torch.utils.data.Dataset):
+def Cifar10(data_path, split, batch_size, shuffle, drop_last):
+    if cfg.DATA_LOADER.BACKEND == 'custom':
+        dataset = Cifar10_custom(data_path, split)
+        # Create a sampler for multi-process training
+    elif cfg.DATA_LOADER.BACKEND == 'torch':
+        MEAN = [0.49139968, 0.48215827, 0.44653124]
+        STD = [0.24703233, 0.24348505, 0.26158768]
+        transf = [
+            transforms.RandomCrop(32, padding=4),
+            transforms.RandomHorizontalFlip()
+        ]
+        normalize = [
+            transforms.ToTensor(),
+            transforms.Normalize(MEAN, STD)
+        ]
+
+        train_transform = transforms.Compose(transf + normalize)
+        valid_transform = transforms.Compose(normalize)
+        if cfg.DATA_LOADER.CUTOUT > 0:
+            train_transform.transforms.append(Cutout(cfg.DATA_LOADER.CUTOUT))
+        dset_cls = dset.CIFAR10
+        if split == 'train':
+            dataset = dset_cls(root=data_path, train=True,
+                               download=True, transform=train_transform)
+        elif split == 'val':
+            dataset = dset_cls(root=data_path, train=False,
+                               download=True, transform=valid_transform)
+        else:
+            raise NotImplementedError
+    else:
+        print("cifar10 only support torch and custom beckend!")
+
+    sampler = DistributedSampler(dataset) if cfg.NUM_GPUS > 1 else None
+    # Create a loader
+    loader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=(False if sampler else shuffle),
+        sampler=sampler,
+        num_workers=cfg.DATA_LOADER.NUM_WORKERS,
+        pin_memory=cfg.DATA_LOADER.PIN_MEMORY,
+        drop_last=drop_last,
+    )
+    return loader
+
+
+class Cifar10_custom(torch.utils.data.Dataset):
     """CIFAR-10 dataset."""
 
     def __init__(self, data_path, split):
-        assert os.path.exists(data_path), "Data path '{}' not found".format(data_path)
+        assert os.path.exists(
+            data_path), "Data path '{}' not found".format(data_path)
         splits = ["train", "test"]
-        assert split in splits, "Split '{}' not supported for cifar".format(split)
+        assert split in splits, "Split '{}' not supported for cifar".format(
+            split)
         logger.info("Constructing CIFAR-10 {}...".format(split))
         self._data_path, self._split = data_path, split
         self._inputs, self._labels = self._load_data()
@@ -61,7 +113,8 @@ class Cifar10(torch.utils.data.Dataset):
         im = transforms.color_norm(im, _MEAN, _SD)
         if self._split == "train":
             im = transforms.horizontal_flip(im=im, p=0.5)
-            im = transforms.random_crop(im=im, size=cfg.TRAIN.IM_SIZE, pad_size=4)
+            im = transforms.random_crop(
+                im=im, size=cfg.TRAIN.IM_SIZE, pad_size=4)
         return im
 
     def __getitem__(self, index):
