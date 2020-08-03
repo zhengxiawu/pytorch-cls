@@ -404,7 +404,7 @@ _C.CFG_DEST = "config.yaml"
 
 # Note that non-determinism may still be present due to non-deterministic
 # operator implementations in GPU operator libraries
-_C.RNG_SEED = 1
+_C.RNG_SEED = 2
 
 # Log destination ('stdout' or 'file')
 _C.LOG_DEST = "file"
@@ -418,6 +418,9 @@ _C.DIST_BACKEND = "nccl"
 # Hostname and port for initializing multi-process groups
 _C.HOST = "localhost"
 _C.PORT = 10001
+
+# If we use a determinstic to stablize the training process
+_C.DETERMINSTIC = True
 
 # Models weights referred to by URL are downloaded to this local cache
 _C.DOWNLOAD_CACHE = "/tmp/pycls-download-cache"

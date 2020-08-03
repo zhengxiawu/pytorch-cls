@@ -12,6 +12,7 @@ import os
 
 import numpy as np
 import torch
+import random
 
 import pytorch_cls.core.benchmark as benchmark
 import pytorch_cls.core.builders as builders
@@ -43,8 +44,15 @@ def setup_env():
     # Fix the RNG seeds (see RNG comment in core/config.py for discussion)
     np.random.seed(cfg.RNG_SEED)
     torch.manual_seed(cfg.RNG_SEED)
+    torch.cuda.manual_seed_all(cfg.RNG_SEED)
+    random.seed(cfg.RNG_SEED)
     # Configure the CUDNN backend
-    torch.backends.cudnn.benchmark = cfg.CUDNN.BENCHMARK
+    if cfg.DETERMINSTIC:
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.enabled = True
+    else:
+        torch.backends.cudnn.benchmark = cfg.CUDNN.BENCHMARK
 
 
 def setup_model():
