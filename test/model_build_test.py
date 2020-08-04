@@ -31,9 +31,9 @@ def main():
     print(model_complex)
     model_complex_2 = profile(model, inputs=(x, ))
     print(model_complex_2)
-    a, b = thop_profile(model, inputs=(x, ))
-    print(a)
-    print(b)
+    # a, b = thop_profile(model, inputs=(x, ))
+    # print(a)
+    # print(b)
 
 
 if __name__ == "__main__":
