@@ -420,7 +420,10 @@ class AugmentCNN(nn.Module):
         out = out.view(out.size(0), -1)  # flatten
         x = self.dropout(x) if hasattr(self, "dropout") else x
         logits = self.linear(out)
-        return logits, aux_logits
+        if self.aux_pos == -1:
+            return logits
+        else:
+            return logits, aux_logits
 
     def drop_path_prob(self, p):
         """ Set drop path probability """

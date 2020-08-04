@@ -98,10 +98,15 @@ def train_epoch(train_loader, model, loss_fun, optimizer, train_meter, cur_epoch
         # using AMP
         if scaler is not None:
             with torch.cuda.amp.autocast():
-                # Perform the forward pass in AMP
-                preds = model(inputs)
-                # Compute the loss in AMP
-                loss = loss_fun(preds, labels)
+                if cfg.DARTS.AUX_WEIGHT > 0 and cfg.MODEL.TYPE == 'darts_cnn':
+                    preds, aux_preds = model(inputs)
+                    loss = loss_fun(preds, labels)
+                    loss += cfg.DARTS.AUX_WEIGHT * loss_fun(aux_preds, labels)
+                else:
+                    # Perform the forward pass in AMP
+                    preds = model(inputs)
+                    # Compute the loss in AMP
+                    loss = loss_fun(preds, labels)
                 # Perform the backward pass in AMP
                 optimizer.zero_grad()
                 scaler.scale(loss).backward()
@@ -109,9 +114,14 @@ def train_epoch(train_loader, model, loss_fun, optimizer, train_meter, cur_epoch
                 # Updates the scale for next iteration.
                 scaler.update()
         else:
-            preds = model(inputs)
-            # Compute the loss
-            loss = loss_fun(preds, labels)
+            if cfg.DARTS.AUX_WEIGHT > 0 and cfg.MODEL.TYPE == 'darts_cnn':
+                preds, aux_preds = model(inputs)
+                loss = loss_fun(preds, labels)
+                loss += cfg.DARTS.AUX_WEIGHT * loss_fun(aux_preds, labels)
+            else:
+                preds = model(inputs)
+                # Compute the loss
+                loss = loss_fun(preds, labels)
             # Perform the backward pass
             optimizer.zero_grad()
             loss.backward()
@@ -150,10 +160,16 @@ def test_epoch(test_loader, model, test_meter, cur_epoch):
         if cfg.TEST.AMP & hasattr(torch.cuda.amp, 'autocast'):
             with torch.cuda.amp.autocast():
                 # Compute the predictions
-                preds = model(inputs)
+                if cfg.DARTS.AUX_WEIGHT > 0 and cfg.MODEL.TYPE == 'darts_cnn':
+                    preds, aux_preds = model(inputs)
+                else:
+                    preds = model(inputs)
         else:
             # Compute the predictions
-            preds = model(inputs)
+            if cfg.DARTS.AUX_WEIGHT > 0 and cfg.MODEL.TYPE == 'darts_cnn':
+                    preds, aux_preds = model(inputs)
+                else:
+                    preds = model(inputs)
         # Compute the errors
         top1_err, top5_err = meters.topk_errors(preds, labels, [1, 5])
         # Combine the errors across the GPUs  (no reduction if 1 GPU used)
