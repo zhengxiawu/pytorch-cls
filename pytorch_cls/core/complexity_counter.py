@@ -116,7 +116,7 @@ def profile(model, input_size, custom_ops=None):
             total_ops += m_ops
             total_params += m_params
             total_acts += m_acts
-        #  print(prefix, module._get_name(), (total_ops.item(), total_params.item()))
+        print(prefix, module._get_name(), (total_ops.item(), total_params.item()))
         return total_ops, total_params, total_acts
 
     total_ops, total_params, total_acts = dfs_count(model)
