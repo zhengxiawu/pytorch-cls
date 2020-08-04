@@ -84,19 +84,39 @@ def profile(model, input_size, custom_ops=None):
     with torch.no_grad():
         model(x)
 
-    total_ops = 0
-    total_params = 0
-    total_acts = 0
-    for m in model.modules():
-        if len(list(m.children())) > 0:  # skip for non-leaf module
-            continue
-        total_ops += m.total_ops
-        total_params += m.total_params
-        total_acts += m.total_acts
+    def dfs_count(module: nn.Module, prefix="\t") -> (int, int):
+        total_ops, total_params, total_acts = 0, 0, 0
+        for m in module.children():
+            # if not hasattr(m, "total_ops") and not hasattr(m, "total_params"):  # and len(list(m.children())) > 0:
+            #     m_ops, m_params = dfs_count(m, prefix=prefix + "\t")
+            # else:
+            #     m_ops, m_params = m.total_ops, m.total_params
+            if m in handler_collection and not isinstance(m, (nn.Sequential, nn.ModuleList)):
+                m_ops, m_params, m_acts = m.total_ops.item(
+                ), m.total_params.item(), m.total_acts.item()
+            else:
+                m_ops, m_params, m_acts = dfs_count(m, prefix=prefix + "\t")
+            total_ops += m_ops
+            total_params += m_params
+            total_acts += m_acts
+        #  print(prefix, module._get_name(), (total_ops.item(), total_params.item()))
+        return total_ops, total_params, total_acts
 
-    total_ops = total_ops.item()
-    total_params = total_params.item()
-    total_acts = total_acts.item()
+    total_ops, total_params, total_acts = dfs_count(model)
+
+    # total_ops = 0
+    # total_params = 0
+    # total_acts = 0
+    # for m in model.modules():
+    #     if len(list(m.children())) > 0:  # skip for non-leaf module
+    #         continue
+    #     total_ops += m.total_ops
+    #     total_params += m.total_params
+    #     total_acts += m.total_acts
+
+    # total_ops = total_ops.item()
+    # total_params = total_params.item()
+    # total_acts = total_acts.item()
 
     model.train(training).to(original_device)
     for handler in handler_collection:
