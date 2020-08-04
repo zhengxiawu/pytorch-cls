@@ -66,8 +66,15 @@ def compute_time_train(model, loss_fun):
             bw_timer.reset()
         # Forward
         fw_timer.tic()
-        preds = model(inputs)
-        loss = loss_fun(preds, labels)
+        if cfg.DARTS.AUX_WEIGHT > 0 and cfg.MODEL.TYPE == 'darts_cnn':
+            preds, aux_preds = model(inputs)
+            loss = loss_fun(preds, labels)
+            loss += cfg.DARTS.AUX_WEIGHT * loss_fun(aux_preds, labels)
+        else:
+            # Perform the forward pass in AMP
+            preds = model(inputs)
+            # Compute the loss in AMP
+            loss = loss_fun(preds, labels)
         torch.cuda.synchronize()
         fw_timer.toc()
         # Backward
