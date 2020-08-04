@@ -18,7 +18,7 @@ from pytorch_cls.models.darts_model import darts_cnn
 
 
 # Supported models
-_models = {"anynet": AnyNet, "effnet": EffNet, "resnet": ResNet, "regnet": RegNet, "mobilenet": MobileNet, "dartscnn": darts_cnn}
+_models = {"anynet": AnyNet, "effnet": EffNet, "resnet": ResNet, "regnet": RegNet, "mobilenet": MobileNet, "darts_cnn": darts_cnn}
 
 # Supported loss functions
 _loss_funs = {"cross_entropy": torch.nn.CrossEntropyLoss}
