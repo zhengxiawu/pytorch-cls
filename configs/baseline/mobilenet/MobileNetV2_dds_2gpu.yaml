@@ -28,8 +28,8 @@ TEST:
   IM_SIZE: 256
   BATCH_SIZE: 200
 DATA_LOADER:
-  NUM_WORKERS: 72
-  USE_DALI: True
+  NUM_WORKERS: 12
+  BACKEND: 'dali_cpu'
   WORLD_SIZE: 1
 NUM_GPUS: 2
 OUT_DIR: ./experiments/mobilenetv2_dds_2gpu
