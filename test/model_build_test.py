@@ -23,6 +23,7 @@ def main():
     cfg.freeze()
     print("building model {}".format(cfg.MODEL.TYPE))
     model = build_model()
+    model.cuda()
     model.eval()
     x = torch.randn(1, 3, cfg.TRAIN.IM_SIZE, cfg.TRAIN.IM_SIZE)
     # y = model(x)
