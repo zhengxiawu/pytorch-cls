@@ -47,7 +47,7 @@ def Cifar10(data_path, split, batch_size, shuffle, drop_last):
         train_transform = torch_transforms.Compose(transf + normalize)
         valid_transform = torch_transforms.Compose(normalize)
         if cfg.DATA_LOADER.CUTOUT > 0:
-            train_transform.torch_transforms.append(Cutout(cfg.DATA_LOADER.CUTOUT))
+            train_transform.transforms.append(Cutout(cfg.DATA_LOADER.CUTOUT))
         dset_cls = dset.CIFAR10
         if split == 'train':
             dataset = dset_cls(root=data_path, train=True,
