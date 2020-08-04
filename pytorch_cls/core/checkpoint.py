@@ -48,7 +48,7 @@ def has_checkpoint():
     return any(_NAME_PREFIX in f for f in os.listdir(checkpoint_dir))
 
 
-def save_checkpoint(model, optimizer, epoch):
+def save_checkpoint(model, optimizer, epoch, best=False):
     """Saves a checkpoint."""
     # Save checkpoints only from the master process
     if not dist.is_master_proc():
@@ -65,7 +65,8 @@ def save_checkpoint(model, optimizer, epoch):
         "cfg": cfg.dump(),
     }
     # Write the checkpoint
-    checkpoint_file = get_checkpoint(epoch + 1)
+    checkpoint_file = os.path.join(get_checkpoint_dir(
+    ), "model_best.pyth") if best else get_checkpoint(epoch + 1)
     torch.save(checkpoint, checkpoint_file)
     return checkpoint_file
 

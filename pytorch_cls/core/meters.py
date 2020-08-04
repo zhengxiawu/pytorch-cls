@@ -192,6 +192,7 @@ class TestMeter(object):
         self.num_top1_mis = 0
         self.num_top5_mis = 0
         self.num_samples = 0
+        self.is_best = False
 
     def reset(self, min_errs=False):
         if min_errs:
@@ -239,6 +240,8 @@ class TestMeter(object):
     def get_epoch_stats(self, cur_epoch):
         top1_err = self.num_top1_mis / self.num_samples
         top5_err = self.num_top5_mis / self.num_samples
+        if top1_err < self.min_top1_err:
+            self.is_best = True
         self.min_top1_err = min(self.min_top1_err, top1_err)
         self.min_top5_err = min(self.min_top5_err, top5_err)
         mem_usage = gpu_mem_usage()

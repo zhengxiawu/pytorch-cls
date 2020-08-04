@@ -240,6 +240,10 @@ def train_model():
         if next_epoch % cfg.TRAIN.EVAL_PERIOD == 0 or next_epoch == cfg.OPTIM.MAX_EPOCH:
             logger.info("Start testing")
             test_epoch(test_loader, model, test_meter, cur_epoch)
+        # save best
+        if test_meter.is_best:
+            checkpoint_file = checkpoint.save_checkpoint(
+                model, optimizer, cur_epoch, test_meter.is_best)
         if torch.cuda.is_available():
             torch.cuda.synchronize()
             torch.cuda.empty_cache()  # https://forums.fast.ai/t/clearing-gpu-memory-pytorch/14637
