@@ -72,10 +72,16 @@ def reset_bn_stats(model):
 def complexity_conv2d(cx, w_in, w_out, k, stride, padding, groups=1, bias=False):
     """Accumulates complexity of Conv2D into cx = (h, w, flops, params, acts)."""
     h, w, flops, params, acts = cx["h"], cx["w"], cx["flops"], cx["params"], cx["acts"]
-    h = (h + 2 * padding - k) // stride + 1
-    w = (w + 2 * padding - k) // stride + 1
-    flops += k * k * w_in * w_out * h * w // groups
-    params += k * k * w_in * w_out // groups
+    k_h = k if k is int else k[0]
+    k_w = k if k is int else k[1]
+    stride_h = stride if stride is int else stride[0]
+    stride_w = stride if stride is int else stride[1]
+    padding_h = padding if padding is int else padding[0]
+    padding_w = padding if padding is int else padding[1]
+    h = (h + 2 * padding_h - k_h) // stride_h + 1
+    w = (w + 2 * padding_w - k_w) // stride_w + 1
+    flops += k_h * k_w * w_in * w_out * h * w // groups
+    params += k_h * k_w * w_in * w_out // groups
     flops += w_out if bias else 0
     params += w_out if bias else 0
     acts += w_out * h * w
@@ -92,8 +98,14 @@ def complexity_batchnorm2d(cx, w_in):
 def complexity_maxpool2d(cx, k, stride, padding):
     """Accumulates complexity of MaxPool2d into cx = (h, w, flops, params, acts)."""
     h, w, flops, params, acts = cx["h"], cx["w"], cx["flops"], cx["params"], cx["acts"]
-    h = (h + 2 * padding - k) // stride + 1
-    w = (w + 2 * padding - k) // stride + 1
+    k_h = k if k is int else k[0]
+    k_w = k if k is int else k[1]
+    stride_h = stride if stride is int else stride[0]
+    stride_w = stride if stride is int else stride[1]
+    padding_h = padding if padding is int else padding[0]
+    padding_w = padding if padding is int else padding[1]
+    h = (h + 2 * padding_h - k_h) // stride_h + 1
+    w = (w + 2 * padding_w - k_w) // stride_w + 1
     return {"h": h, "w": w, "flops": flops, "params": params, "acts": acts}
 
 

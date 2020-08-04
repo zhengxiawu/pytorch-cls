@@ -210,6 +210,28 @@ _C.MB.DC_RATIO = 0.0
 # Dropout ratio
 _C.MB.DROPOUT_RATIO = 0.0
 
+# ------------------------------------------------------------------------------------ #
+# Darts model options
+# ------------------------------------------------------------------------------------ #
+_C.DARTS = CfgNode()
+
+# Init channel of the network
+_C.DARTS.INIT_CHANNEL = 36
+
+# The number of the network
+_C.DARTS.LAYERS = 20
+
+# Dropout ratio
+_C.DARTS.DROPOUT_RATIO = 0.0
+
+# drop path prob
+_C.DARTS.DROP_PATH_PROB = 0.2
+
+# stem_multiplier
+_C.DARTS.STEM_MULTIPLIER = 3
+
+# The genotype of the network
+_C.DARTS.GENOTYPE = ''
 
 # ------------------------------------------------------------------------------------ #
 # Batch norm options

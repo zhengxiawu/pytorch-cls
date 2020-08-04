@@ -8,12 +8,13 @@
 """Test build a classification model."""
 
 import torch
-from thop import profile
+from thop import thop_profile
 
 import pytorch_cls.core.config as config
 from pytorch_cls.core.builders import build_model
 from pytorch_cls.core.config import cfg
 from pytorch_cls.core.net import complexity
+from pytorch_cls.core.complexity_counter import profile
 
 
 def main():
@@ -28,6 +29,8 @@ def main():
     print(y.shape)
     model_complex = complexity(model)
     print(model_complex)
+    model_complex_2 = profile(model, [1, 3, 224, 224])
+    print(model_complex_2)
 
 
 if __name__ == "__main__":
