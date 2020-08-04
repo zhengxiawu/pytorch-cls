@@ -14,19 +14,38 @@ def count_convNd(m, _, y):
     # cout x oW x oH
     total_ops = cin * output_elements * ops_per_element // m.groups
     total_acts = output_elements
-    m.total_ops = torch.Tensor([int(total_ops)])
-    m.total_acts = torch.Tensor([int(total_acts)])
+    m.total_ops += torch.DoubleTensor([int(total_ops)])
+    m.total_acts += torch.DoubleTensor([int(total_acts)])
 
 
 def count_linear(m, _, y):
     total_ops = m.in_features * m.out_features
-    m.total_acts = torch.Tensor([int(y.nelement())])
-    m.total_ops = torch.Tensor([int(total_ops)])
+    m.total_acts += torch.DoubleTensor([int(y.nelement())])
+    m.total_ops += torch.DoubleTensor([int(total_ops)])
 
 
-def count_bn(m, _, y):
-    m.total_acts = torch.Tensor([0])
-    m.total_ops = torch.Tensor([0])
+def count_bn(m, x, y):
+    x = x[0]
+
+    nelements = x.numel()
+    if not m.training:
+        # subtract, divide, gamma, beta
+        total_ops = 2 * nelements
+
+    m.total_acts += torch.DoubleTensor([0])
+    m.total_ops += torch.DoubleTensor([total_ops])
+
+
+def count_adap_avgpool(m, x, y):
+    kernel = torch.DoubleTensor([*(x[0].shape[2:])]) // torch.DoubleTensor([*(y.shape[2:])])
+    total_add = torch.prod(kernel)
+    total_div = 1
+    kernel_ops = total_add + total_div
+    num_elements = y.numel()
+    total_ops = kernel_ops * num_elements
+
+    m.total_ops += torch.DoubleTensor([int(total_ops)])
+    m.total_acts += torch.DoubleTensor([0])
 
 
 register_hooks = {
@@ -40,6 +59,7 @@ register_hooks = {
     nn.Dropout2d: None,
     nn.Dropout3d: None,
     nn.BatchNorm2d: count_bn,
+    nn.AdaptiveAvgPool2d: count_adap_avgpool,
 }
 
 
@@ -48,9 +68,6 @@ def profile(model, input_size, custom_ops=None):
     custom_ops = {} if custom_ops is None else custom_ops
 
     def add_hooks(m_):
-        if len(list(m_.children())) > 0:
-            return
-
         m_.register_buffer('total_ops', torch.zeros(1))
         m_.register_buffer('total_params', torch.zeros(1))
         m_.register_buffer('total_acts', torch.zeros(1))
