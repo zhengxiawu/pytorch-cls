@@ -8,7 +8,7 @@
 """Test build a classification model."""
 
 import torch
-from thop import thop_profile
+from thop import profile as thop_profile
 
 import pytorch_cls.core.config as config
 from pytorch_cls.core.builders import build_model
