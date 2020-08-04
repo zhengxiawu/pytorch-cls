@@ -135,7 +135,8 @@ class StdConv(nn.Module):
 
     @staticmethod
     def complexity(cx, C_in, C_out, kernel_size, stride, padding):
-        cx = net.complexity_conv2d(cx, C_in, C_out, kernel_size, stride, padding, bias=False)
+        cx = net.complexity_conv2d(
+            cx, C_in, C_out, kernel_size, stride, padding, bias=False)
         cx = net.complexity_batchnorm2d(cx, C_out)
         return cx
 
@@ -161,8 +162,10 @@ class FacConv(nn.Module):
 
     @staticmethod
     def complexity(cx, C_in, C_out, kernel_length, stride, padding):
-        cx = net.complexity_conv2d(cx, C_in, C_out, (kernel_length, 1), (stride, 1), (padding, 0), bias=False)
-        cx = net.complexity_conv2d(cx, C_in, C_out, (1, kernel_length), (1, stride), (0, padding), bias=False)
+        cx = net.complexity_conv2d(
+            cx, C_in, C_out, (kernel_length, 1), (stride, 1), (padding, 0), bias=False)
+        cx = net.complexity_conv2d(
+            cx, C_in, C_out, (1, kernel_length), (1, stride), (0, padding), bias=False)
         cx = net.complexity_batchnorm2d(cx, C_out)
         return cx
 
@@ -190,7 +193,8 @@ class DilConv(nn.Module):
 
     @staticmethod
     def complexity(cx, C_in, C_out, kernel_size, stride, padding):
-        cx = net.complexity_conv2d(cx, C_in, C_in, kernel_size, stride, padding, groups=C_in, bias=False)
+        cx = net.complexity_conv2d(
+            cx, C_in, C_in, kernel_size, stride, padding, groups=C_in, bias=False)
         cx = net.complexity_conv2d(cx, C_in, C_out, 1, 1, 0, bias=False)
         cx = net.complexity_batchnorm2d(cx, C_out)
         return cx
@@ -321,25 +325,6 @@ class AugmentCell(nn.Module):
 
         return s_out
 
-    # @staticmethod
-    # def complexity(cx0, cx1, C_pp, C_p, C, reduction_p, reduction):
-    #     if reduction_p:
-    #         cx0 = FactorizedReduce.complexity(cx0, C_pp, C)
-    #     else:
-    #         cx0 = StdConv.complexity(cx0, C_pp, C, 1, 1, 0)
-    #     cx1 = StdConv.complexity(cx1, C_p, C, 1, 1, 0)
-    #     cxs = [cx0, cx1]
-    #     for edges in self.dag:
-    #         for op in edges:
-    #             cx_edge = []
-    #             if op is nn.Sequential:
-    #                 op = op[0]
-    #                 s_idx = op.s_idx
-    #                 stride = 2 if reduction and s_idx < 2 else 1
-    #                 if type(op) in [SepConv, DilConv]:
-    #                     cx_edge.append(op.complexity(cxs[s_idx], C, C, kernel_size, stride, padding))
-    #     return cx
-
 
 class AuxiliaryHead(nn.Module):
     """ Auxiliary head in 2/3 place of network to let the gradient flow well """
@@ -444,6 +429,93 @@ class AugmentCNN(nn.Module):
                 module.p = p
 
 
+class AugmentCNN_ImageNet(nn.Module):
+    """ Augmented CNN model """
+
+    def __init__(self, input_size, C_in, C, n_classes, n_layers, auxiliary, genotype,
+                 stem_multiplier=3):
+        """
+        Args:
+            input_size: size of height and width (assuming height = width)
+            C_in: # of input channels
+            C: # of starting model channels
+        """
+        super().__init__()
+        self.C_in = C_in
+        self.C = C
+        self.n_classes = n_classes
+        self.n_layers = n_layers
+        self.genotype = genotype
+        # aux head position
+        self.aux_pos = 2*n_layers//3 if auxiliary else -1
+
+        self.stem0 = nn.Sequential(
+            nn.Conv2d(C_in, C // 2, kernel_size=3,
+                      stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(C // 2),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(C // 2, C, 3, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(C),
+        )
+        self.stem1 = nn.Sequential(
+            nn.ReLU(inplace=True),
+            nn.Conv2d(C, C, 3, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(C),
+        )
+
+        C_prev_prev, C_prev, C_curr = C, C, C
+
+        self.cells = nn.ModuleList()
+        reduction_prev = True
+        for i in range(n_layers):
+            if i in [n_layers//3, 2*n_layers//3]:
+                C_curr *= 2
+                reduction = True
+            else:
+                reduction = False
+
+            cell = AugmentCell(genotype, C_prev_prev, C_prev,
+                               C_curr, reduction_prev, reduction)
+            reduction_prev = reduction
+            self.cells.append(cell)
+            C_prev_prev, C_prev = C_prev, len(cell.concat) * C_curr
+
+            if i == self.aux_pos:
+                # [!] this auxiliary head is ignored in computing parameter size
+                #     by the name 'aux_head'
+                self.aux_head = AuxiliaryHead(input_size//4, C_prev, n_classes)
+
+        self.gap = nn.AdaptiveAvgPool2d(1)
+        # dropout
+        if cfg.DARTS.DROPOUT_RATIO > 0.0:
+            self.dropout = nn.Dropout(p=cfg.DARTS.DROPOUT_RATIO)
+        self.linear = nn.Linear(C_prev, n_classes)
+
+    def forward(self, x):
+        s0 = self.stem0(x)
+        s1 = self.stem1(s0)
+        aux_logits = None
+        for i, cell in enumerate(self.cells):
+            s0, s1 = s1, cell(s0, s1)
+            if i == self.aux_pos and self.training:
+                aux_logits = self.aux_head(s1)
+
+        out = self.gap(s1)
+        out = out.view(out.size(0), -1)  # flatten
+        out = self.dropout(out) if hasattr(self, "dropout") else out
+        logits = self.linear(out)
+        if self.aux_pos == -1:
+            return logits
+        else:
+            return logits, aux_logits
+
+    def drop_path_prob(self, p):
+        """ Set drop path probability """
+        for module in self.modules():
+            if isinstance(module, DropPath_):
+                module.p = p
+
+
 def NASNet():
     NASNet = Genotype(
         normal=[
@@ -473,8 +545,7 @@ def NASNet():
         ],
         reduce_concat=[4, 5, 6],
     )
-    net = AugmentCNN(32, 3, 36, 10, 20, True, NASNet)
-    return net
+    return NASNet
 
 
 def AmoebaNet():
@@ -506,21 +577,37 @@ def AmoebaNet():
         ],
         reduce_concat=[3, 4, 6]
     )
-    net = AugmentCNN(32, 3, 36, 10, 20, True, AmoebaNet)
-    return net
+    return AmoebaNet
 
 
 def DARTS_V1():
     DARTS_V1 = Genotype(normal=[[('sep_conv_3x3', 1), ('sep_conv_3x3', 0)], [('skip_connect', 0), ('sep_conv_3x3', 1)], [('skip_connect', 0), ('sep_conv_3x3', 1)], [('sep_conv_3x3', 0), ('skip_connect', 2)]], normal_concat=[
                         2, 3, 4, 5], reduce=[[('max_pool_3x3', 0), ('max_pool_3x3', 1)], [('skip_connect', 2), ('max_pool_3x3', 0)], [('max_pool_3x3', 0), ('skip_connect', 2)], [('skip_connect', 2), ('avg_pool_3x3', 0)]], reduce_concat=[2, 3, 4, 5])
-    net = AugmentCNN(32, 3, 36, 10, 20, True, DARTS_V1)
-    return net
+    return DARTS_V1
 
 
 def DARTS_V2():
     DARTS_V2 = Genotype(normal=[[('sep_conv_3x3', 0), ('sep_conv_3x3', 1)], [('sep_conv_3x3', 0), ('sep_conv_3x3', 1)], [('sep_conv_3x3', 1), ('skip_connect', 0)], [('skip_connect', 0), ('dil_conv_3x3', 2)]], normal_concat=[
                         2, 3, 4, 5], reduce=[[('max_pool_3x3', 0), ('max_pool_3x3', 1)], [('skip_connect', 2), ('max_pool_3x3', 1)], [('max_pool_3x3', 0), ('skip_connect', 2)], [('skip_connect', 2), ('max_pool_3x3', 1)]], reduce_concat=[2, 3, 4, 5])
-    net = AugmentCNN(32, 3, 36, 10, 20, True, DARTS_V2)
+    return DARTS_V2
+
+
+def darts_cnn():
+    if cfg.DARTS.NAME == 'darts_v1':
+        genotype = DARTS_V1()
+    elif cfg.DARTS.NAME == 'darts_v2':
+        genotype = DARTS_V2()
+    elif cfg.DARTS.NAME == 'nasnet':
+        genotype = NASNet()
+    elif cfg.DARTS.NAME == 'amoebanet':
+        genotype = AmoebaNet()
+    else:
+        genotype = eval(cfg.DARTS.GENOTYPE)
+    build_fun = AugmentCNN if cfg.DARTS.MODEL_TYPE == 'cifar10' else AugmentCNN_ImageNet
+
+    aux_ = True if cfg.DARTS.AUX_WEIGHT > 0 else False
+
+    net = build_fun(cfg.TRAIN.IM_SIZE, 3, cfg.DARTS.INIT_CHANNEL, cfg.MODEL.NUM_CLASSES, cfg.DARTS.LAYERS, aux_, genotype)
     return net
 
 

@@ -13,6 +13,7 @@ import math
 import torch
 import torch.nn as nn
 from pytorch_cls.core.config import cfg
+from pytorch_cls.core.complexity_counter import profile
 
 
 def init_weights(m):
@@ -112,9 +113,13 @@ def complexity_maxpool2d(cx, k, stride, padding):
 def complexity(model):
     """Compute model complexity (model can be model instance or model class)."""
     size = cfg.TRAIN.IM_SIZE
-    cx = {"h": size, "w": size, "flops": 0, "params": 0, "acts": 0}
-    cx = model.complexity(cx)
-    return {"flops": cx["flops"], "params": cx["params"], "acts": cx["acts"]}
+    x = torch.randn(1, 3, size, size)
+    complexity = profile(model, inputs=(x, ))
+    return complexity
+    # old version
+    # cx = {"h": size, "w": size, "flops": 0, "params": 0, "acts": 0}
+    # cx = model.complexity(cx)
+    # return {"flops": cx["flops"], "params": cx["params"], "acts": cx["acts"]}
 
 
 def drop_connect(x, drop_ratio):

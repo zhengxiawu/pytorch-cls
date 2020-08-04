@@ -227,11 +227,20 @@ _C.DARTS.DROPOUT_RATIO = 0.0
 # drop path prob
 _C.DARTS.DROP_PATH_PROB = 0.2
 
+# aux weight
+_C.DARTS.AUX_WEIGHT = 0.4
+
 # stem_multiplier
 _C.DARTS.STEM_MULTIPLIER = 3
 
 # The genotype of the network
 _C.DARTS.GENOTYPE = ''
+
+# The genotype of the network
+_C.DARTS.MODEL_TYPE = 'cifar10'
+
+# The genotype of the network
+_C.DARTS.NAME = 'darts_v1'
 
 # ------------------------------------------------------------------------------------ #
 # Batch norm options
@@ -303,6 +312,9 @@ _C.OPTIM.WARMUP_FACTOR = 0.1
 
 # Gradually warm up the OPTIM.BASE_LR over this number of epochs
 _C.OPTIM.WARMUP_EPOCHS = 0
+
+# grad clip
+_C.OPTIM.GRAD_CLIP = 0.0
 
 
 # ------------------------------------------------------------------------------------ #

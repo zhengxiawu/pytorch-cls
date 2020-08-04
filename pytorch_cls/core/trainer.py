@@ -9,10 +9,11 @@
 
 import gc
 import os
+import random
 
 import numpy as np
 import torch
-import random
+import torch.nn as nn
 
 import pytorch_cls.core.benchmark as benchmark
 import pytorch_cls.core.builders as builders
@@ -114,6 +115,8 @@ def train_epoch(train_loader, model, loss_fun, optimizer, train_meter, cur_epoch
             # Perform the backward pass
             optimizer.zero_grad()
             loss.backward()
+            if cfg.OPTIM.GRAD_CLIP > 0:
+                nn.utils.clip_grad_norm_(model.parameters(), cfg.OPTIM.GRAD_CLIP)
             # Update the parameters
             optimizer.step()
         # Compute the errors
@@ -199,6 +202,12 @@ def train_model():
     # Perform the training loop
     logger.info("Start epoch: {}".format(start_epoch + 1))
     for cur_epoch in range(start_epoch, cfg.OPTIM.MAX_EPOCH):
+        if cfg.MODEL.TYPE == 'darts_cnn' and cfg.DARTS.DROP_PATH_PROB > 0:
+            drop_prob = cfg.DARTS.DROP_PATH_PROB * cur_epoch / cfg.OPTIM.MAX_EPOCH
+            if cfg.NUM_GPUS > 1:
+                model.module.drop_path_prob(drop_prob)
+            else:
+                model.drop_path_prob(drop_prob)
         # Train for one epoch
         train_epoch(train_loader, model, loss_fun,
                     optimizer, train_meter, cur_epoch)

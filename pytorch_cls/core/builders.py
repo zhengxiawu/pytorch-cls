@@ -14,10 +14,11 @@ from pytorch_cls.models.effnet import EffNet
 from pytorch_cls.models.regnet import RegNet
 from pytorch_cls.models.resnet import ResNet
 from pytorch_cls.models.mobilenet import MobileNet
+from pytorch_cls.models.darts_model import darts_cnn
 
 
 # Supported models
-_models = {"anynet": AnyNet, "effnet": EffNet, "resnet": ResNet, "regnet": RegNet, "mobilenet": MobileNet}
+_models = {"anynet": AnyNet, "effnet": EffNet, "resnet": ResNet, "regnet": RegNet, "mobilenet": MobileNet, "dartscnn": darts_cnn}
 
 # Supported loss functions
 _loss_funs = {"cross_entropy": torch.nn.CrossEntropyLoss}
