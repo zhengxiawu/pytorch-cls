@@ -31,6 +31,9 @@ def main():
     print(model_complex)
     model_complex_2 = profile(model, [1, 3, 224, 224])
     print(model_complex_2)
+    a, b = thop_profile(model, [1, 3, 224, 224])
+    print(a)
+    print(b)
 
 
 if __name__ == "__main__":
