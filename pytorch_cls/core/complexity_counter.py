@@ -25,7 +25,7 @@ def count_linear(m, _, y):
 
 
 def count_bn(m, _, y):
-    m.total_acts = torch.Tensor([int(y.nelement())])
+    m.total_acts = torch.Tensor([0])
     m.total_ops = torch.Tensor([0])
 
 
