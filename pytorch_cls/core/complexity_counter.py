@@ -196,7 +196,7 @@ def profile(model: nn.Module, inputs, custom_ops=None, verbose=True):
             total_ops += m_ops
             total_params += m_params
             total_acts += m_acts
-        #  print(prefix, module._get_name(), (total_ops.item(), total_params.item()))
+        print(prefix, module._get_name(), (total_ops, total_params))
         return total_ops, total_params, total_acts
 
     total_ops, total_params, total_acts = dfs_count(model)
@@ -210,82 +210,3 @@ def profile(model: nn.Module, inputs, custom_ops=None, verbose=True):
         m._buffers.pop("total_params")
 
     return {"flops": total_ops, "params": total_params, "acts": total_acts}
-
-
-# def profile(model, input_size, custom_ops=None):
-#     handler_collection = []
-#     custom_ops = {} if custom_ops is None else custom_ops
-
-#     def add_hooks(m_):
-#         m_.register_buffer('total_ops', torch.zeros(1))
-#         m_.register_buffer('total_params', torch.zeros(1))
-#         m_.register_buffer('total_acts', torch.zeros(1))
-
-#         for p in m_.parameters():
-#             m_.total_params += torch.Tensor([p.numel()])
-
-#         m_type = type(m_)
-#         fn = None
-
-#         if m_type in custom_ops:
-#             fn = custom_ops[m_type]
-#         elif m_type in register_hooks:
-#             fn = register_hooks[m_type]
-#         else:
-#             # print("Not implemented for ", m_)
-#             pass
-
-#         if fn is not None:
-#             # print("Register FLOP counter for module %s" % str(m_))
-#             _handler = m_.register_forward_hook(fn)
-#             handler_collection.append(_handler)
-
-#     original_device = model.parameters().__next__().device
-#     training = model.training
-
-#     model.eval()
-#     model.apply(add_hooks)
-
-#     x = torch.zeros(input_size).to(original_device)
-#     with torch.no_grad():
-#         model(x)
-
-#     def dfs_count(module: nn.Module, prefix="\t") -> (int, int):
-#         total_ops, total_params, total_acts = 0, 0, 0
-#         for m in module.children():
-#             # if not hasattr(m, "total_ops") and not hasattr(m, "total_params"):  # and len(list(m.children())) > 0:
-#             #     m_ops, m_params = dfs_count(m, prefix=prefix + "\t")
-#             # else:
-#             #     m_ops, m_params = m.total_ops, m.total_params
-#             if m in handler_collection and not isinstance(m, (nn.Sequential, nn.ModuleList)):
-#                 m_ops, m_params, m_acts = m.total_ops.item(
-#                 ), m.total_params.item(), m.total_acts.item()
-#             else:
-#                 m_ops, m_params, m_acts = dfs_count(m, prefix=prefix + "\t")
-#             total_ops += m_ops
-#             total_params += m_params
-#             total_acts += m_acts
-#         print(prefix, module._get_name(), (total_ops, total_params, total_acts))
-#         return total_ops, total_params, total_acts
-
-#     total_ops, total_params, total_acts = dfs_count(model)
-
-#     # total_ops = 0
-#     # total_params = 0
-#     # total_acts = 0
-#     # for m in model.modules():
-#     #     if len(list(m.children())) > 0:  # skip for non-leaf module
-#     #         continue
-#     #     total_ops += m.total_ops
-#     #     total_params += m.total_params
-#     #     total_acts += m.total_acts
-
-#     # total_ops = total_ops.item()
-#     # total_params = total_params.item()
-#     # total_acts = total_acts.item()
-
-#     model.train(training).to(original_device)
-#     for handler in handler_collection:
-#         handler.remove()
-
-#     return {"flops": total_ops, "params": total_params, "acts": total_acts}
