@@ -26,6 +26,7 @@ def main():
     model.cuda()
     model.eval()
     x = torch.randn(1, 3, cfg.TRAIN.IM_SIZE, cfg.TRAIN.IM_SIZE)
+    x.cuda()
     # y = model(x)
     # print(y.shape)
     # model_complex = complexity(model)
