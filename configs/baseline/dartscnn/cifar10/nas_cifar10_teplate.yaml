@@ -2,15 +2,15 @@ MODEL:
   TYPE: darts_cnn
   NUM_CLASSES: 10
 DARTS:
-  INIT_CHANNEL:  36
-  LAYERS:      20
-  DROPOUT_RATIO:    0.0
-  DROP_PATH_PROB:    0.2
-  AUX_WEIGHT:     0.4
+  INIT_CHANNEL:    36
+  LAYERS:          20
+  DROPOUT_RATIO:   0.0
+  DROP_PATH_PROB:  0.2
+  AUX_WEIGHT:      0.4
   STEM_MULTIPLIER: 3
-  GENOTYPE:    ''
-  MODEL_TYPE:  'cifar10'
-  NAME:       'darts_v2'
+  GENOTYPE:       ''
+  MODEL_TYPE:     'cifar10'
+  NAME:           'darts_v2'
 OPTIM:
   LR_POLICY: cos
   BASE_LR: 0.025
@@ -22,6 +22,7 @@ TRAIN:
   DATASET: cifar10
   IM_SIZE: 32
   BATCH_SIZE: 96
+  CHECKPOINT_PERIOD: 20
 TEST:
   DATASET: cifar10
   IM_SIZE: 32
@@ -31,5 +32,5 @@ DATA_LOADER:
   BACKEND: torch
   CUTOUT: 16
 NUM_GPUS: 1
-OUT_DIR: ./experiments/darts_cnn
+OUT_DIR: /userhome/project/pytorch-cls/experiments/cifar10/darts_v2
 LOG_DEST: 'file'

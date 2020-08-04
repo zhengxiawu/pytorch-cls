@@ -596,7 +596,9 @@ def DARTS_V2():
 
 
 def darts_cnn():
-    if cfg.DARTS.NAME == 'darts_v1':
+    if len(cfg.DARTS.GENOTYPE) > 10:
+        genotype = eval(cfg.DARTS.GENOTYPE)
+    elif cfg.DARTS.NAME == 'darts_v1':
         genotype = DARTS_V1()
     elif cfg.DARTS.NAME == 'darts_v2':
         genotype = DARTS_V2()
@@ -605,7 +607,7 @@ def darts_cnn():
     elif cfg.DARTS.NAME == 'amoebanet':
         genotype = AmoebaNet()
     else:
-        genotype = eval(cfg.DARTS.GENOTYPE)
+        raise NotImplementedError
     build_fun = AugmentCNN if cfg.DARTS.MODEL_TYPE == 'cifar10' else AugmentCNN_ImageNet
 
     aux_ = True if cfg.DARTS.AUX_WEIGHT > 0 else False
