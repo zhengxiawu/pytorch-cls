@@ -29,6 +29,7 @@ TEST:
 DATA_LOADER:
   NUM_WORKERS: 4
   BACKEND: torch
+  CUTOUT: 16
 NUM_GPUS: 1
 OUT_DIR: ./experiments/darts_cnn
 LOG_DEST: 'file'

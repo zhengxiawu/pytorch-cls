@@ -340,6 +340,7 @@ _C.DATA_LOADER.MEMORY_DATA = False
 # transformers
 _C.DATA_LOADER.PCA_JITTER = False
 _C.DATA_LOADER.COLOR_JITTER = False
+_C.DATA_LOADER.CUTOUT = 0
 
 # ------------------------------------------------------------------------------------ #
 # Training options
