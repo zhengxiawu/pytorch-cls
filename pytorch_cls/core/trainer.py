@@ -167,9 +167,9 @@ def test_epoch(test_loader, model, test_meter, cur_epoch):
         else:
             # Compute the predictions
             if cfg.DARTS.AUX_WEIGHT > 0 and cfg.MODEL.TYPE == 'darts_cnn':
-                    preds, aux_preds = model(inputs)
-                else:
-                    preds = model(inputs)
+                preds, aux_preds = model(inputs)
+            else:
+                preds = model(inputs)
         # Compute the errors
         top1_err, top5_err = meters.topk_errors(preds, labels, [1, 5])
         # Combine the errors across the GPUs  (no reduction if 1 GPU used)
