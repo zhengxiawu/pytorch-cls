@@ -36,14 +36,15 @@ def count_convNd(m: _ConvNd, x: (torch.Tensor,), y: torch.Tensor):
 
 
 def count_bn(m, x, y):
-    x = x[0]
+    # x = x[0]
 
-    nelements = x.numel()
-    if not m.training:
-        # subtract, divide, gamma, beta
-        total_ops = 2 * nelements
+    # nelements = x.numel()
+    # if not m.training:
+    #     # subtract, divide, gamma, beta
+    #     total_ops = 2 * nelements
 
-    m.total_ops += torch.DoubleTensor([int(total_ops)])
+    # m.total_ops += torch.DoubleTensor([int(total_ops)])
+    m.total_ops += torch.DoubleTensor([int(0)])
     m.total_acts += torch.DoubleTensor([int(0)])
 
 
