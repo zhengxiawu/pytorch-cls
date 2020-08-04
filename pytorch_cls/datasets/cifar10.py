@@ -36,18 +36,18 @@ def Cifar10(data_path, split, batch_size, shuffle, drop_last):
         MEAN = [0.49139968, 0.48215827, 0.44653124]
         STD = [0.24703233, 0.24348505, 0.26158768]
         transf = [
-            transforms.RandomCrop(32, padding=4),
-            transforms.RandomHorizontalFlip()
+            torch_transforms.RandomCrop(32, padding=4),
+            torch_transforms.RandomHorizontalFlip()
         ]
         normalize = [
-            transforms.ToTensor(),
-            transforms.Normalize(MEAN, STD)
+            torch_transforms.ToTensor(),
+            torch_transforms.Normalize(MEAN, STD)
         ]
 
-        train_transform = transforms.Compose(transf + normalize)
-        valid_transform = transforms.Compose(normalize)
+        train_transform = torch_transforms.Compose(transf + normalize)
+        valid_transform = torch_transforms.Compose(normalize)
         if cfg.DATA_LOADER.CUTOUT > 0:
-            train_transform.transforms.append(Cutout(cfg.DATA_LOADER.CUTOUT))
+            train_transform.torch_transforms.append(Cutout(cfg.DATA_LOADER.CUTOUT))
         dset_cls = dset.CIFAR10
         if split == 'train':
             dataset = dset_cls(root=data_path, train=True,
