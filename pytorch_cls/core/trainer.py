@@ -27,7 +27,14 @@ import pytorch_cls.core.optimizer as optim
 import pytorch_cls.datasets.loader as loader
 from pytorch_cls.core.config import cfg
 
+try:
+    from torch.utils.tensorboard import SummaryWriter
+except ModuleNotFoundError:
+    from tensorboardX import SummaryWriter
+
+
 logger = logging.get_logger(__name__)
+writer = SummaryWriter(log_dir=os.path.join(cfg.OUT_DIR, "tb"))
 
 
 def setup_env():
@@ -248,6 +255,13 @@ def train_model():
             torch.cuda.synchronize()
             torch.cuda.empty_cache()  # https://forums.fast.ai/t/clearing-gpu-memory-pytorch/14637
         gc.collect()
+        # log into tensorboard
+        train_stats = train_meter.get_epoch_stats(cur_epoch)
+        test_stats = train_meter.get_epoch_stats(cur_epoch)
+        writer.add_scalar('train/top1', train_stats['top1_err'], cur_epoch)
+        writer.add_scalar('train/top5', train_stats['top5_err'], cur_epoch)
+        writer.add_scalar('test/top1', test_stats['top1_err'], cur_epoch)
+        writer.add_scalar('test/top5', test_stats['top5_err'], cur_epoch)
 
 
 def test_model():
