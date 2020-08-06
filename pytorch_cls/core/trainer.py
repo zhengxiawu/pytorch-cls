@@ -34,7 +34,7 @@ except ModuleNotFoundError:
 
 
 logger = logging.get_logger(__name__)
-writer = SummaryWriter(log_dir=os.path.join(cfg.OUT_DIR, "tb"))
+writer = None
 
 
 def setup_env():
@@ -61,6 +61,8 @@ def setup_env():
         torch.backends.cudnn.enabled = True
     else:
         torch.backends.cudnn.benchmark = cfg.CUDNN.BENCHMARK
+    global writer
+    writer = SummaryWriter(log_dir=os.path.join(cfg.OUT_DIR, "tb"))
 
 
 def setup_model():
@@ -151,10 +153,7 @@ def train_epoch(train_loader, model, loss_fun, optimizer, train_meter, cur_epoch
         train_meter.log_iter_stats(cur_epoch, cur_iter)
         train_meter.iter_tic()
     # Log epoch stats
-    train_stats = train_meter.get_epoch_stats(cur_epoch)
-    writer.add_scalar('train/top1', train_stats['top1_err'], cur_epoch)
-    writer.add_scalar('train/top5', train_stats['top5_err'], cur_epoch)
-    train_meter.log_epoch_stats(cur_epoch)
+    train_meter.log_epoch_stats(cur_epoch, writer)
     train_meter.reset()
 
 
@@ -194,10 +193,7 @@ def test_epoch(test_loader, model, test_meter, cur_epoch):
         test_meter.log_iter_stats(cur_epoch, cur_iter)
         test_meter.iter_tic()
     # Log epoch stats
-    test_stats = test_meter.get_epoch_stats(cur_epoch)
-    writer.add_scalar('test/top1', test_stats['top1_err'], cur_epoch)
-    writer.add_scalar('test/top5', test_stats['top5_err'], cur_epoch)
-    test_meter.log_epoch_stats(cur_epoch)
+    test_meter.log_epoch_stats(cur_epoch, writer)
     test_meter.reset()
 
 

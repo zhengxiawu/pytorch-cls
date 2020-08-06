@@ -171,9 +171,12 @@ class TrainMeter(object):
         }
         return stats
 
-    def log_epoch_stats(self, cur_epoch):
+    def log_epoch_stats(self, cur_epoch, tenosrboard_writer=None):
         stats = self.get_epoch_stats(cur_epoch)
         logger.info(logging.dump_log_data(stats, "train_epoch"))
+        if tenosrboard_writer is not None:
+            tenosrboard_writer.add_scalar('train/top1', stats['top1_err'], cur_epoch)
+            tenosrboard_writer.add_scalar('train/top5', stats['top5_err'], cur_epoch)
 
 
 class TestMeter(object):
@@ -231,11 +234,14 @@ class TestMeter(object):
         }
         return iter_stats
 
-    def log_iter_stats(self, cur_epoch, cur_iter):
+    def log_iter_stats(self, cur_epoch, cur_iter, tenosrboard_writer=None):
         if (cur_iter + 1) % cfg.LOG_PERIOD != 0:
             return
         stats = self.get_iter_stats(cur_epoch, cur_iter)
         logger.info(logging.dump_log_data(stats, "test_iter"))
+        if tenosrboard_writer is not None:
+            tenosrboard_writer.add_scalar('test/top1', stats['top1_err'], cur_epoch)
+            tenosrboard_writer.add_scalar('test/top5', stats['top5_err'], cur_epoch)
 
     def get_epoch_stats(self, cur_epoch):
         top1_err = self.num_top1_mis / self.num_samples
