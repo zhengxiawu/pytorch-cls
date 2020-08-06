@@ -177,6 +177,8 @@ class TrainMeter(object):
         if tenosrboard_writer is not None:
             tenosrboard_writer.add_scalar('train/top1', stats['top1_err'], cur_epoch)
             tenosrboard_writer.add_scalar('train/top5', stats['top5_err'], cur_epoch)
+            tenosrboard_writer.add_scalar('train/loss', stats['loss'], cur_epoch)
+            tenosrboard_writer.add_scalar('train/lr', stats['lr'], cur_epoch)
 
 
 class TestMeter(object):
