@@ -36,7 +36,7 @@ def Cifar10(data_path, split, batch_size, shuffle, drop_last):
         MEAN = [0.49139968, 0.48215827, 0.44653124]
         STD = [0.24703233, 0.24348505, 0.26158768]
         transf = [
-            torch_transforms.RandomCrop(32, padding=4),
+            torch_transforms.RandomCrop(32, padding=4, padding_mode='reflect'),
             torch_transforms.RandomHorizontalFlip()
         ]
         normalize = [
