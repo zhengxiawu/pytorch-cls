@@ -151,6 +151,9 @@ def train_epoch(train_loader, model, loss_fun, optimizer, train_meter, cur_epoch
         train_meter.log_iter_stats(cur_epoch, cur_iter)
         train_meter.iter_tic()
     # Log epoch stats
+    train_stats = train_meter.get_epoch_stats(cur_epoch)
+    writer.add_scalar('train/top1', train_stats['top1_err'], cur_epoch)
+    writer.add_scalar('train/top5', train_stats['top5_err'], cur_epoch)
     train_meter.log_epoch_stats(cur_epoch)
     train_meter.reset()
 
@@ -191,6 +194,9 @@ def test_epoch(test_loader, model, test_meter, cur_epoch):
         test_meter.log_iter_stats(cur_epoch, cur_iter)
         test_meter.iter_tic()
     # Log epoch stats
+    test_stats = test_meter.get_epoch_stats(cur_epoch)
+    writer.add_scalar('test/top1', test_stats['top1_err'], cur_epoch)
+    writer.add_scalar('test/top5', test_stats['top5_err'], cur_epoch)
     test_meter.log_epoch_stats(cur_epoch)
     test_meter.reset()
 
@@ -256,13 +262,6 @@ def train_model():
             torch.cuda.synchronize()
             torch.cuda.empty_cache()  # https://forums.fast.ai/t/clearing-gpu-memory-pytorch/14637
         gc.collect()
-        # log into tensorboard
-        train_stats = train_meter.get_epoch_stats(cur_epoch)
-        test_stats = train_meter.get_epoch_stats(cur_epoch)
-        writer.add_scalar('train/top1', train_stats['top1_err'], cur_epoch)
-        writer.add_scalar('train/top5', train_stats['top5_err'], cur_epoch)
-        writer.add_scalar('test/top1', test_stats['top1_err'], cur_epoch)
-        writer.add_scalar('test/top5', test_stats['top5_err'], cur_epoch)
 
 
 def test_model():
