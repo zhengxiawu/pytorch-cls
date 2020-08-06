@@ -67,7 +67,8 @@ def setup_model():
     """Sets up a model for training or testing and log the results."""
     # Build the model
     model = builders.build_model()
-    logger.info("Model:\n{}".format(model))
+    # logger.info("Model:\n{}".format(model))
+    logger.info("Torchversion:{}".format(torch.__version__))
     # Log model complexity
     logger.info(logging.dump_log_data(net.complexity(model), "complexity"))
     # Transfer the model to the current GPU device
