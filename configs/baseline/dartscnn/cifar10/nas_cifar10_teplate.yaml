@@ -31,6 +31,8 @@ DATA_LOADER:
   NUM_WORKERS: 4
   BACKEND: torch
   CUTOUT: 16
+RANDOM_OUT_DIR: True
+SAVE_NAME: 'darts'
 NUM_GPUS: 1
-OUT_DIR: /userhome/project/pytorch-cls/experiments/cifar10/darts_v2
+OUT_DIR: /userhome/project/pytorch-cls/experiments/cifar10/darts_cnn/
 LOG_DEST: 'file'

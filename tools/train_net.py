@@ -16,6 +16,7 @@ from pytorch_cls.core.config import cfg
 def main():
     config.load_cfg_fom_args("Train a classification model.")
     config.assert_and_infer_cfg()
+    config.random_out_dir()
     cfg.freeze()
     dist.multi_proc_run(num_proc=cfg.NUM_GPUS, fun=trainer.train_model)
 

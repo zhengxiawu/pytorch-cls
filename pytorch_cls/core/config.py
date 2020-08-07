@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 # Copyright (c) Facebook, Inc. and its affiliates.
 #
 # This source code is licensed under the MIT license found in the
@@ -434,6 +433,12 @@ _C.NUM_GPUS = 1
 # Output directory
 _C.OUT_DIR = "/tmp"
 
+# Random Output directory
+_C.RANDOM_OUT_DIR = False
+
+# save name
+_C.SAVE_NAME = ''
+
 # Config destination (in OUT_DIR)
 _C.CFG_DEST = "config.yaml"
 
@@ -513,3 +518,11 @@ def assert_and_infer_cfg(cache_urls=True):
     assert not _C.BN.USE_PRECISE_STATS or _C.NUM_GPUS == 1, err_str
     err_str = "Log destination '{}' not supported"
     assert _C.LOG_DEST in ["stdout", "file"], err_str.format(_C.LOG_DEST)
+
+
+def random_out_dir():
+    if _C.RANDOM_OUT_DIR:
+        import uuid
+        import torch
+        _C.OUT_DIR = os.path.join(_C.OUT_DIR, "{}_{}_{}".format(
+            _C.SAVE_NAME, str(torch.__version__), str(uuid.uuid1())))
